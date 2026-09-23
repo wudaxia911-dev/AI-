@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吳冠緯 | 個人首頁</title>
+    
+    <!-- Google Tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y7QMR9WVZE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-Y7QMR9WVZE');
+    </script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter & Noto Sans TC -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        aurora: {
+                            bg: '#0a0d18',
+                            card: 'rgba(255, 255, 255, 0.04)',
+                            cardHover: 'rgba(255, 255, 255, 0.08)',
+                            border: 'rgba(255, 255, 255, 0.12)',
+                            cyan: '#00f2fe',
+                            emerald: '#10b981',
+                            purple: '#a855f7',
+                            pink: '#ec4899',
+                            blue: '#3b82f6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Background & Fluid Aurora Gradients */
+        body {
+            background-color: #080b14;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+
+        .aurora-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -10;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .aurora-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.45;
+            animation: float 18s infinite alternate ease-in-out;
+        }
+
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 55vw;
+            height: 55vw;
+            background: radial-gradient(circle, #00f2fe 0%, #4facfe 100%);
+            animation-duration: 20s;
+        }
+
+        .blob-2 {
+            top: 40%;
+            right: -15%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, #7928ca 0%, #ff0080 100%);
+            animation-duration: 25s;
+            animation-delay: -5s;
+        }
+
+        .blob-3 {
+            bottom: -15%;
+            left: 20%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, #10b981 0%, #059669 100%);
+            animation-duration: 22s;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0px, 0px) scale(1) rotate(0deg);
+            }
+            50% {
+                transform: translate(60px, 80px) scale(1.15) rotate(180deg);
+            }
+            100% {
+                transform: translate(-40px, -50px) scale(0.9) rotate(360deg);
+            }
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card-hover:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 12px 40px 0 rgba(0, 242, 254, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .aurora-glow-avatar {
+            position: relative;
+        }
+
+        .aurora-glow-avatar::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 9999px;
+            background: linear-gradient(45deg, #00f2fe, #10b981, #a855f7, #ec4899);
+            z-index: -1;
+            filter: blur(12px);
+            opacity: 0.8;
+            animation: spinGlow 8s linear infinite;
+        }
+
+        @keyframes spinGlow {
+            0% { filter: blur(12px) hue-rotate(0deg); }
+            100% { filter: blur(12px) hue-rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col relative selection:bg-cyan-500 selection:text-black">
+
+    <!-- Fluid Background Aurora Canvas Blobs -->
+    <div class="aurora-bg">
+        <div class="aurora-blob blob-1"></div>
+        <div class="aurora-blob blob-2"></div>
+        <div class="aurora-blob blob-3"></div>
+    </div>
+
+    <header class="sticky top-0 z-40 w-full py-4 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-6xl mx-auto glass-card rounded-2xl px-5 py-3 flex items-center justify-between">
+            <!-- Brand / Name -->
+            <a href="#home" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center font-black text-white text-lg shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+                    吳
+                </div>
+                <span class="font-extrabold text-white tracking-wide text-lg">吳冠緯</span>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center space-x-2 text-sm font-semibold">
+                <a href="#home" class="px-4 py-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all">Home</a>
+                <button onclick="openComingSoon('News')" class="px-4 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
+                    <span>News</span>
+                    <span class="text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full font-bold">Coming soon</span>
+                </button>
+                <button onclick="openComingSoon('Tools')" class="px-4 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
+                    <span>Tools</span>
+                    <span class="text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full font-bold">Coming soon</span>
+                </button>
+                <button onclick="openComingSoon('Games')" class="px-4 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
+                    <span>Games</span>
+                    <span class="text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full font-bold">Coming soon</span>
+                </button>
+            </nav>
+
+            <!-- Mobile Toggle -->
+            <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden w-10 h-10 rounded-xl glass-card flex items-center justify-center text-white focus:outline-none" aria-label="Toggle Navigation Menu">
+                <i class="fa-solid fa-bars text-lg" id="menu-icon"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Drawer Menu -->
+        <div id="mobile-menu" class="hidden md:hidden max-w-6xl mx-auto pt-3">
+            <div class="glass-card rounded-2xl p-4 space-y-2 text-sm font-semibold">
+                <a href="#home" onclick="toggleMobileMenu()" class="block w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">Home</a>
+                <button onclick="openComingSoon('News'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl text-slate-300 flex items-center justify-between hover:bg-white/10">
+                    <span>News</span>
+                    <span class="text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full font-bold">Coming soon</span>
+                </button>
+                <button onclick="openComingSoon('Tools'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl text-slate-300 flex items-center justify-between hover:bg-white/10">
+                    <span>Tools</span>
+                    <span class="text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full font-bold">Coming soon</span>
+                </button>
+                <button onclick="openComingSoon('Games'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl text-slate-300 flex items-center justify-between hover:bg-white/10">
+                    <span>Games</span>
+                    <span class="text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full font-bold">Coming soon</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Hero Section Card -->
+        <section id="home" class="glass-card rounded-3xl p-8 sm:p-12 relative overflow-hidden">
+            <div class="flex flex-col md:flex-row items-center gap-8 lg:gap-12">
+                
+                <!-- Glowing Aurora Avatar Frame -->
+                <div class="shrink-0">
+                    <div class="aurora-glow-avatar rounded-full p-1">
+                        <div class="w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-slate-950/80 border border-white/20 flex flex-col items-center justify-center text-cyan-400 relative overflow-hidden group">
+                            <i class="fa-solid fa-user-astronaut text-5xl sm:text-6xl text-cyan-300 drop-shadow-[0_0_15px_rgba(0,242,254,0.6)]"></i>
+                            <span class="absolute bottom-3 text-[10px] font-bold tracking-widest text-slate-300 uppercase bg-black/60 px-3 py-0.5 rounded-full border border-white/10 backdrop-blur-md">個人照片</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Headline -->
+                <div class="flex-1 text-center md:text-left space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-bold text-cyan-300 shadow-[0_0_15px_rgba(0,242,254,0.2)]">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>大同大學數位媒體設計學系學生 / 遊戲開發專案</span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight">
+                        <span class="text-gradient">吳冠緯</span>
+                    </h1>
+
+                    <p class="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-2xl">
+                        大同大學數位媒體設計學系學生（2026年至今，預計於2027年7月畢業），致力於遊戲專案內容與模組開發。
+                    </p>
+
+                    <!-- CTA Actions -->
+                    <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4">
+                        <a href="#contact" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-extrabold text-sm inline-flex items-center gap-2 shadow-[0_0_20px_rgba(0,242,254,0.4)] transition-all hover:scale-105">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                            <span>聯絡我</span>
+                        </a>
+                        <a href="#about" class="px-6 py-3.5 rounded-2xl glass-card text-white font-bold text-sm inline-flex items-center gap-2 hover:bg-white/10 transition-all">
+                            <i class="fa-solid fa-book-open text-xs text-cyan-400"></i>
+                            <span>閱讀完整簡介</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Biography Section -->
+        <section id="about" class="glass-card rounded-3xl p-6 sm:p-10 space-y-4">
+            <div class="flex items-center gap-3 border-b border-white/10 pb-4">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 text-lg font-bold">
+                    <i class="fa-solid fa-id-card"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-white">Biography</h2>
+            </div>
+
+            <div class="bg-black/30 rounded-2xl p-6 border border-white/5">
+                <p class="text-slate-200 text-base sm:text-lg leading-relaxed font-medium">
+                    吳冠緯，目前就讀於大同大學數位媒體設計學系（2026年至今），預計於2027年7月畢業。專長使用 Unity、Muselab 及 Photoshop，並於團隊專案中負責執行。至今已參與四項遊戲專案，包含一款音樂遊戲的自創模組，以及《Saving the Dragon》（2D橫向卷軸闖關）、《起床上班!!!》（3D攀登類型）與《粉人遊戲》（2D生存類型）。對遊戲內容與模組開發抱持高度興趣，平時喜愛聆聽音樂，近期也對烹飪產生興趣。
+                </p>
+            </div>
+        </section>
+
+        <!-- Specialty & Interests Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Tools / Software Card -->
+            <section class="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+                <div class="flex items-center gap-3 border-b border-white/10 pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-lg font-bold">
+                        <i class="fa-solid fa-laptop-code"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">專長與工具</h3>
+                        <p class="text-xs text-slate-400">Specialty & Software Tools</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 sm:gap-4">
+                    <div class="glass-card glass-card-hover p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+                        <div class="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-cyan-400 text-xl font-bold">
+                            <i class="fa-solid fa-cube"></i>
+                        </div>
+                        <span class="font-extrabold text-sm text-white">Unity</span>
+                    </div>
+
+                    <div class="glass-card glass-card-hover p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+                        <div class="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-emerald-400 text-xl font-bold">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <span class="font-extrabold text-sm text-white">Muselab</span>
+                    </div>
+
+                    <div class="glass-card glass-card-hover p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-2">
+                        <div class="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-blue-400 text-xl font-bold">
+                            <i class="fa-solid fa-image"></i>
+                        </div>
+                        <span class="font-extrabold text-sm text-white">Photoshop</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Role & Interests Card -->
+            <section class="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+                <div class="flex items-center gap-3 border-b border-white/10 pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 text-lg font-bold">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">職務負責與個人興趣</h3>
+                        <p class="text-xs text-slate-400">Team Role & Personal Interests</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-300 text-sm font-bold shrink-0">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-white">團隊專案執行</div>
+                            <div class="text-xs text-slate-400">於團隊專案中負責執行</div>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-300 text-sm font-bold shrink-0">
+                            <i class="fa-solid fa-gamepad"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-white">遊戲內容與模組開發</div>
+                            <div class="text-xs text-slate-400">抱持高度興趣</div>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-300 text-sm font-bold shrink-0">
+                            <i class="fa-solid fa-utensils"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-white">音樂與烹飪</div>
+                            <div class="text-xs text-slate-400">喜愛聽音樂、近期對煮飯有興趣</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Games Projects Section -->
+        <section class="glass-card rounded-3xl p-6 sm:p-10 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-300 text-lg font-bold">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-white">遊戲專案 (Games)</h2>
+                        <p class="text-xs text-slate-400">至今已製作四項遊戲專案</p>
+                    </div>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-500/30 text-xs font-bold text-pink-300 w-max">
+                    共 4 款作品
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Game 1 -->
+                <div class="glass-card glass-card-hover rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                    <div class="space-y-2.5">
+                        <span class="px-2.5 py-1 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[11px] font-bold inline-block">
+                            音樂遊戲模組
+                        </span>
+                        <h3 class="font-extrabold text-white text-base">音樂遊戲自創模組</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            一個音樂遊戲的自創模組製作專案。
+                        </p>
+                    </div>
+                    <div class="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                        <span>專案 01</span>
+                        <span class="text-cyan-400">團隊負責執行</span>
+                    </div>
+                </div>
+
+                <!-- Game 2 -->
+                <div class="glass-card glass-card-hover rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                    <div class="space-y-2.5">
+                        <span class="px-2.5 py-1 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[11px] font-bold inline-block">
+                            2D 橫向卷軸闖關
+                        </span>
+                        <h3 class="font-extrabold text-white text-base">Saving the Dragon</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            一款 2D 橫向卷軸闖關類型遊戲。
+                        </p>
+                    </div>
+                    <div class="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                        <span>專案 02</span>
+                        <span class="text-cyan-400">團隊負責執行</span>
+                    </div>
+                </div>
+
+                <!-- Game 3 -->
+                <div class="glass-card glass-card-hover rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                    <div class="space-y-2.5">
+                        <span class="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold inline-block">
+                            3D 攀登類型
+                        </span>
+                        <h3 class="font-extrabold text-white text-base">起床上班!!!</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            一款 3D 攀登類型遊戲專案。
+                        </p>
+                    </div>
+                    <div class="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                        <span>專案 03</span>
+                        <span class="text-cyan-400">團隊負責執行</span>
+                    </div>
+                </div>
+
+                <!-- Game 4 -->
+                <div class="glass-card glass-card-hover rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                    <div class="space-y-2.5">
+                        <span class="px-2.5 py-1 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[11px] font-bold inline-block">
+                            2D 存活類型
+                        </span>
+                        <h3 class="font-extrabold text-white text-base">粉人遊戲</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            一款 2D 存活類型遊戲專案。
+                        </p>
+                    </div>
+                    <div class="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                        <span>專案 04</span>
+                        <span class="text-cyan-400">團隊負責執行</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="glass-card rounded-3xl p-8 sm:p-10 relative overflow-hidden">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+                <div class="space-y-2 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-bold text-cyan-300">
+                        <i class="fa-solid fa-address-book"></i> 聯絡資訊
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-white">聯絡我</h2>
+                    <p class="text-sm text-slate-300">歡迎透過電話或 Email 與我聯繫</p>
+                </div>
+
+                <div class="w-full lg:w-auto flex flex-col sm:flex-row gap-4">
+                    <!-- Phone Contact Card -->
+                    <div class="glass-card p-4 rounded-2xl flex items-center justify-between gap-4 min-w-[250px]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 font-bold">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-400 font-bold uppercase">電話</div>
+                                <div class="text-sm font-extrabold text-white">0976839070</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <a href="tel:0976839070" class="w-8 h-8 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 flex items-center justify-center text-xs transition-all" title="撥打電話">
+                                <i class="fa-solid fa-phone"></i>
+                            </a>
+                            <button onclick="copyToClipboard('0976839070', '電話號碼已成功複製！')" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition-all" title="複製電話">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Email Contact Card -->
+                    <div class="glass-card p-4 rounded-2xl flex items-center justify-between gap-4 min-w-[280px]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 font-bold">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase">Email</div>
+                                <div class="text-sm font-extrabold text-white truncate">WuDaXia911@gmail.com</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <a href="mailto:WuDaXia911@gmail.com" class="w-8 h-8 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 flex items-center justify-center text-xs transition-all" title="發送郵件">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </a>
+                            <button onclick="copyToClipboard('WuDaXia911@gmail.com', 'Email 已成功複製！')" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition-all" title="複製 Email">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 mt-6 border-t border-white/10 text-center text-xs text-slate-400 space-y-1">
+        <p>&copy; 吳冠緯. All rights reserved.</p>
+        <p>大同大學 數位媒體設計學系</p>
+    </footer>
+
+    <!-- Coming Soon Modal -->
+    <div id="coming-soon-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+        <div class="glass-card p-6 sm:p-8 rounded-3xl max-w-sm w-full text-center space-y-4 border border-white/20 shadow-2xl">
+            <div class="w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-2xl font-bold mx-auto shadow-[0_0_20px_rgba(0,242,254,0.3)]">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <h3 id="modal-title" class="text-xl font-extrabold text-white">Coming Soon</h3>
+            <p class="text-slate-300 text-sm">此頁面內容正在籌備中，敬請期待！</p>
+            <button onclick="closeModal()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-cyan-500/25 transition-all">
+                確定關閉
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 glass-card rounded-2xl px-5 py-3 flex items-center gap-3 border border-cyan-500/40 shadow-[0_0_20px_rgba(0,242,254,0.25)]">
+        <div class="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-sm font-bold">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <span id="toast-message" class="text-sm font-bold text-white">已成功複製！</span>
+    </div>
+
+    <script>
+        // Toggle Mobile Menu
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-xmark');
+            } else {
+                menu.classList.add('hidden');
+                icon.classList.remove('fa-xmark');
+                icon.classList.add('fa-bars');
+            }
+        }
+
+        // Open Coming Soon Modal
+        function openComingSoon(sectionName) {
+            document.getElementById('modal-title').innerText = sectionName + ' - Coming Soon';
+            document.getElementById('coming-soon-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('coming-soon-modal').classList.add('hidden');
+        }
+
+        // Copy to Clipboard Fallback
+        function copyToClipboard(text, successMsg) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(successMsg);
+                }).catch(() => {
+                    execCopyFallback(text, successMsg);
+                });
+            } else {
+                execCopyFallback(text, successMsg);
+            }
+        }
+
+        function execCopyFallback(text, successMsg) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg);
+            } catch (err) {
+                console.error('Copy action failed', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Display Toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = message;
+            
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
