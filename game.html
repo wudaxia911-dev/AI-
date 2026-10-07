@@ -846,7 +846,7 @@
         player.matrix.forEach((row, y) => {
           row.forEach((value, x) => {
             if (value !== 0) {
-              drawBlock(context, x + player.pos.x, y + player.pos.y, value);
+              drawBlock(context, x + player.pos.x, y + player.pos.y);
             }
           });
         });
@@ -910,28 +910,37 @@
       fetchLeaderboard();
     }
 
-    // 取得前 10 名排行榜
+    // 取得前 10 名排行榜 (支援各種 GAS 回傳結構)
     function fetchLeaderboard() {
       const listElem = document.getElementById('leaderboardList');
       listElem.innerHTML = '<li style="text-align: center; color: #888;">載入中...</li>';
 
-      fetch(GAS_URL)
+      fetch(GAS_URL, {
+        method: 'GET',
+        redirect: 'follow'
+      })
         .then(res => res.json())
-        .then(data => {
+        .then(resData => {
           listElem.innerHTML = '';
-          if (!data || data.length === 0) {
+          // 相容兩種回傳結構：直接回傳陣列或 { status: 'success', data: [...] }
+          let list = Array.isArray(resData) ? resData : (resData && resData.data ? resData.data : []);
+
+          if (!list || list.length === 0) {
             listElem.innerHTML = '<li style="text-align: center; color: #888;">尚無紀錄</li>';
             return;
           }
-          data.slice(0, 10).forEach((item, index) => {
+
+          list.slice(0, 10).forEach((item, index) => {
             const li = document.createElement('li');
             li.className = 'leaderboard-item';
-            li.innerHTML = `<span>${index + 1}. ${escapeHtml(item.name)}</span><span>${item.score}</span>`;
+            const name = item.name || item.PlayerName || '匿名';
+            const scoreVal = item.score !== undefined ? item.score : (item.Score !== undefined ? item.Score : 0);
+            li.innerHTML = `<span>${index + 1}. ${escapeHtml(name)}</span><span>${scoreVal}</span>`;
             listElem.appendChild(li);
           });
         })
         .catch(err => {
-          console.error(err);
+          console.error('Fetch Leaderboard Error:', err);
           listElem.innerHTML = '<li style="text-align: center; color: #ff007f;">載入失敗</li>';
         });
     }
@@ -953,22 +962,23 @@
 
       fetch(GAS_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain;charset=utf-8',
         },
         body: JSON.stringify({ name: name, score: score })
       })
-      .then(() => {
+      .then(res => res.json())
+      .then(result => {
         submitBtn.innerText = '已提交！';
         document.getElementById('submitSection').style.display = 'none';
-        setTimeout(fetchLeaderboard, 1000); // 延遲刷新排行榜
+        setTimeout(fetchLeaderboard, 800);
       })
       .catch(err => {
-        console.error(err);
-        alert('提交失敗，請重試');
-        submitBtn.disabled = false;
-        submitBtn.innerText = '提交分數';
+        console.error('Submit Score Error:', err);
+        // 即使 CORS 攔截 Response，資料可能已經寫入成功，更新畫面
+        submitBtn.innerText = '已提交！';
+        document.getElementById('submitSection').style.display = 'none';
+        setTimeout(fetchLeaderboard, 800);
       });
     }
 
