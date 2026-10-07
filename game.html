@@ -203,14 +203,16 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(13, 2, 33, 0.92);
+      background: rgba(13, 2, 33, 0.95);
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
       z-index: 10;
       border-radius: 6px;
+      padding: 15px 10px;
+      overflow-y: auto;
     }
 
     .overlay.hidden {
@@ -218,23 +220,101 @@
     }
 
     .game-over-title {
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 900;
       color: var(--accent-pink);
       text-shadow: 0 0 15px var(--accent-pink);
     }
 
+    /* Leaderboard & Form UI */
+    .submit-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: 200px;
+    }
+
+    .nickname-input {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 15px;
+      padding: 6px 12px;
+      color: #fff;
+      text-align: center;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .nickname-input:focus {
+      box-shadow: 0 0 8px var(--accent-cyan);
+    }
+
+    .submit-btn {
+      background: var(--accent-cyan);
+      color: #000;
+      border: none;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--accent-cyan);
+      transition: transform 0.1s;
+    }
+
+    .submit-btn:active {
+      transform: scale(0.95);
+    }
+
+    .leaderboard-box {
+      width: 100%;
+      max-width: 210px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--accent-purple);
+      border-radius: 8px;
+      padding: 8px;
+      margin-top: 5px;
+    }
+
+    .leaderboard-title {
+      font-size: 13px;
+      color: var(--accent-yellow);
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .leaderboard-list {
+      list-style: none;
+      font-size: 12px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    .leaderboard-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 6px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    .leaderboard-item:nth-child(1) { color: #ffd700; font-weight: bold; }
+    .leaderboard-item:nth-child(2) { color: #c0c0c0; font-weight: bold; }
+    .leaderboard-item:nth-child(3) { color: #cd7f32; font-weight: bold; }
+
     .restart-btn {
       background: var(--accent-pink);
       color: #fff;
       border: none;
-      padding: 12px 24px;
-      font-size: 16px;
+      padding: 8px 20px;
+      font-size: 14px;
       font-weight: bold;
       border-radius: 25px;
       cursor: pointer;
       box-shadow: 0 0 15px var(--accent-pink);
       transition: transform 0.1s;
+      margin-top: 5px;
     }
 
     .restart-btn:active {
@@ -341,7 +421,22 @@
       <!-- Game Over Modal -->
       <div id="gameOverModal" class="overlay hidden">
         <div class="game-over-title">遊戲結束</div>
-        <div style="font-size: 14px; color: #aaa;">得分: <span id="finalScore" style="color: #fff; font-weight: bold;">0</span></div>
+        <div style="font-size: 13px; color: #aaa;">得分: <span id="finalScore" style="color: #fff; font-weight: bold;">0</span></div>
+        
+        <!-- Score Submission Area -->
+        <div id="submitSection" class="submit-box">
+          <input type="text" id="nicknameInput" class="nickname-input" placeholder="輸入暱稱" maxlength="10">
+          <button id="submitBtn" class="submit-btn" onclick="submitScore()">提交分數</button>
+        </div>
+
+        <!-- Leaderboard Display -->
+        <div class="leaderboard-box">
+          <div class="leaderboard-title">🏆 排行榜 Top 10</div>
+          <ul id="leaderboardList" class="leaderboard-list">
+            <li style="text-align: center; color: #888;">載入中...</li>
+          </ul>
+        </div>
+
         <button class="restart-btn" onclick="resetGame()">重新開始</button>
       </div>
     </div>
@@ -377,6 +472,8 @@
   </div>
 
   <script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzkTADADb4ncTK1IsRTO9p-XiUEst4X3BAvXM2S8eGoDMJZ_j5l272UJvGfREQQts7llw/exec';
+
     const canvas = document.getElementById('tetris');
     const context = canvas.getContext('2d');
     const holdCanvas = document.getElementById('holdCanvas');
@@ -425,6 +522,12 @@
     let combo = -1; // Combo Counter (-1 means no current streak)
     let highScore = localStorage.getItem('neon_tetris_highscore') || 0;
     document.getElementById('highScore').innerText = highScore;
+
+    // 自動填入上一次輸入過的暱稱
+    const savedName = localStorage.getItem('neon_tetris_nickname') || '';
+    if (savedName) {
+      document.getElementById('nicknameInput').value = savedName;
+    }
 
     let dropCounter = 0;
     let dropInterval = 1000;
@@ -800,7 +903,79 @@
       isGameOver = true;
       resetLockTimer();
       document.getElementById('finalScore').innerText = score;
+      document.getElementById('submitSection').style.display = 'flex';
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('submitBtn').innerText = '提交分數';
       document.getElementById('gameOverModal').classList.remove('hidden');
+      fetchLeaderboard();
+    }
+
+    // 取得前 10 名排行榜
+    function fetchLeaderboard() {
+      const listElem = document.getElementById('leaderboardList');
+      listElem.innerHTML = '<li style="text-align: center; color: #888;">載入中...</li>';
+
+      fetch(GAS_URL)
+        .then(res => res.json())
+        .then(data => {
+          listElem.innerHTML = '';
+          if (!data || data.length === 0) {
+            listElem.innerHTML = '<li style="text-align: center; color: #888;">尚無紀錄</li>';
+            return;
+          }
+          data.slice(0, 10).forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'leaderboard-item';
+            li.innerHTML = `<span>${index + 1}. ${escapeHtml(item.name)}</span><span>${item.score}</span>`;
+            listElem.appendChild(li);
+          });
+        })
+        .catch(err => {
+          console.error(err);
+          listElem.innerHTML = '<li style="text-align: center; color: #ff007f;">載入失敗</li>';
+        });
+    }
+
+    // 提交分數至 GAS
+    function submitScore() {
+      const nameInput = document.getElementById('nicknameInput');
+      const name = nameInput.value.trim();
+      
+      if (!name) {
+        alert('請輸入暱稱！');
+        return;
+      }
+
+      localStorage.setItem('neon_tetris_nickname', name);
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = '提交中...';
+
+      fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: name, score: score })
+      })
+      .then(() => {
+        submitBtn.innerText = '已提交！';
+        document.getElementById('submitSection').style.display = 'none';
+        setTimeout(fetchLeaderboard, 1000); // 延遲刷新排行榜
+      })
+      .catch(err => {
+        console.error(err);
+        alert('提交失敗，請重試');
+        submitBtn.disabled = false;
+        submitBtn.innerText = '提交分數';
+      });
+    }
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"']/g, function (m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
     }
 
     function resetGame() {
@@ -823,6 +998,8 @@
 
     // Keyboard Controls
     document.addEventListener('keydown', event => {
+      // 若正在輸入暱稱則不觸發遊戲按鍵
+      if (document.activeElement === document.getElementById('nicknameInput')) return;
       if (isGameOver) return;
       
       switch (event.keyCode) {
