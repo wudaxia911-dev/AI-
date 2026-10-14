@@ -18,7 +18,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts: Inter & Noto Sans TC -->
+    <!-- Google Fonts: Inter & Noto Sans TC (保留原字體) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -32,7 +32,7 @@
                 extend: {
                     colors: {
                         aurora: {
-                            bg: '#0a0d18',
+                            bg: '#080b14',
                             card: 'rgba(255, 255, 255, 0.04)',
                             cardHover: 'rgba(255, 255, 255, 0.08)',
                             border: 'rgba(255, 255, 255, 0.12)',
@@ -52,7 +52,7 @@
     </script>
 
     <style>
-        /* Custom Background & Fluid Aurora Gradients */
+        /* 背景色調，色塊透明度適中，保有漂亮的背景色彩且柔和舒適 */
         body {
             background-color: #080b14;
             color: #f1f5f9;
@@ -73,8 +73,8 @@
         .aurora-blob {
             position: absolute;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.45;
+            filter: blur(90px);
+            opacity: 0.28;
             animation: float 18s infinite alternate ease-in-out;
         }
 
@@ -157,7 +157,7 @@
             background: linear-gradient(45deg, #00f2fe, #10b981, #a855f7, #ec4899);
             z-index: -1;
             filter: blur(12px);
-            opacity: 0.8;
+            opacity: 0.6;
             animation: spinGlow 8s linear infinite;
         }
 
