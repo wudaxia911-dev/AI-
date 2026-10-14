@@ -170,32 +170,6 @@
       background: transparent;
     }
 
-    /* Combo Display Floating badge on Right-Bottom of Board */
-    .combo-badge {
-      position: absolute;
-      bottom: 12px;
-      right: 12px;
-      background: rgba(255, 0, 127, 0.9);
-      border: 2px solid var(--accent-yellow);
-      border-radius: 8px;
-      padding: 6px 12px;
-      color: #fff;
-      font-weight: 900;
-      font-size: 16px;
-      text-shadow: 0 0 8px #000;
-      box-shadow: 0 0 15px var(--accent-pink);
-      pointer-events: none;
-      opacity: 0;
-      transform: scale(0.5);
-      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 5;
-    }
-
-    .combo-badge.show {
-      opacity: 1;
-      transform: scale(1.1);
-    }
-
     /* Game Over Modal Overlay */
     .overlay {
       position: absolute;
@@ -412,11 +386,6 @@
     <!-- Center Board -->
     <div id="boardWrapper" class="board-wrapper">
       <canvas id="tetris" width="240" height="480"></canvas>
-      
-      <!-- Combo Badge on Right-Bottom -->
-      <div id="comboBadge" class="combo-badge">
-        COMBO x<span id="comboCount">1</span>
-      </div>
 
       <!-- Game Over Modal -->
       <div id="gameOverModal" class="overlay hidden">
@@ -441,11 +410,15 @@
       </div>
     </div>
 
-    <!-- Right Panel: Next & Level -->
+    <!-- Right Panel: Next, Combo & Level -->
     <div class="side-panel">
       <div class="panel-box">
         <div class="panel-label">下一個</div>
         <canvas id="nextCanvas" class="mini-canvas" width="60" height="60"></canvas>
+      </div>
+      <div class="panel-box">
+        <div class="panel-label">COMBO</div>
+        <div id="comboDisplay" class="panel-value" style="color: var(--accent-pink);">0</div>
       </div>
       <div class="panel-box">
         <div class="panel-label">等級</div>
@@ -481,8 +454,7 @@
     const nextCanvas = document.getElementById('nextCanvas');
     const nextContext = nextCanvas.getContext('2d');
     const boardWrapper = document.getElementById('boardWrapper');
-    const comboBadge = document.getElementById('comboBadge');
-    const comboCount = document.getElementById('comboCount');
+    const comboDisplay = document.getElementById('comboDisplay');
 
     const COLS = 10;
     const ROWS = 20;
@@ -741,6 +713,29 @@
       }
     }
 
+    // 依分數動態計算下落速度（10000分以前階梯加速；10000分之後每1000分加速一次）
+    function updateDropSpeed() {
+      let speedSteps = 0;
+      let currentBase = 100;
+      
+      while (score < 10000 && score >= currentBase) {
+        speedSteps++;
+        if (currentBase.toString().startsWith('1')) {
+          currentBase = currentBase * 5; 
+        } else {
+          currentBase = currentBase * 2; 
+        }
+      }
+
+      if (score >= 10000) {
+        speedSteps = 12; 
+        const extraScore = score - 10000;
+        speedSteps += Math.floor(extraScore / 1000);
+      }
+
+      dropInterval = Math.max(60, 1000 - speedSteps * 55);
+    }
+
     function clearRows() {
       let rowCount = 0;
       outer: for (let y = grid.length - 1; y >= 0; --y) {
@@ -758,11 +753,8 @@
       if (rowCount > 0) {
         combo++; // Increment Combo
         
-        // Show & Update Combo Badge
-        comboCount.innerText = combo;
-        if (combo >= 1) {
-          comboBadge.classList.add('show');
-        }
+        // 更新右側面板的 Combo 顯示
+        comboDisplay.innerText = combo;
 
         // Trigger Screen & Haptic Feedbacks
         triggerFeedback(rowCount);
@@ -773,7 +765,9 @@
         score += (lineScores[rowCount] + comboBonus) * level;
         lines += rowCount;
         level = Math.floor(lines / 10) + 1;
-        dropInterval = Math.max(100, 1000 - (level - 1) * 80);
+
+        // 呼叫依分數動態調整速度的函式
+        updateDropSpeed();
 
         document.getElementById('score').innerText = score;
         document.getElementById('lines').innerText = lines;
@@ -787,7 +781,7 @@
       } else {
         // Break Combo if no lines cleared
         combo = 0;
-        comboBadge.classList.remove('show');
+        comboDisplay.innerText = 0;
       }
     }
 
@@ -922,7 +916,6 @@
         .then(res => res.json())
         .then(resData => {
           listElem.innerHTML = '';
-          // 相容兩種回傳結構：直接回傳陣列或 { status: 'success', data: [...] }
           let list = Array.isArray(resData) ? resData : (resData && resData.data ? resData.data : []);
 
           if (!list || list.length === 0) {
@@ -975,7 +968,6 @@
       })
       .catch(err => {
         console.error('Submit Score Error:', err);
-        // 即使 CORS 攔截 Response，資料可能已經寫入成功，更新畫面
         submitBtn.innerText = '已提交！';
         document.getElementById('submitSection').style.display = 'none';
         setTimeout(fetchLeaderboard, 800);
@@ -997,7 +989,7 @@
       dropInterval = 1000;
       isGameOver = false;
       holdType = null;
-      comboBadge.classList.remove('show');
+      comboDisplay.innerText = 0;
       document.getElementById('score').innerText = 0;
       document.getElementById('lines').innerText = 0;
       document.getElementById('level').innerText = 1;
@@ -1008,7 +1000,6 @@
 
     // Keyboard Controls
     document.addEventListener('keydown', event => {
-      // 若正在輸入暱稱則不觸發遊戲按鍵
       if (document.activeElement === document.getElementById('nicknameInput')) return;
       if (isGameOver) return;
       
