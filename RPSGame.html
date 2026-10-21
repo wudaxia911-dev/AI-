@@ -530,7 +530,6 @@
 
     const synth = new SynthSound();
 
-    // 確保本機開多個分頁時 ID 絕對獨立不重複
     let myPlayerId = 'p_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
     let myName = '';
     let currentRoomId = null;
@@ -574,7 +573,8 @@
         name: myName,
         score: 0,
         choice: null,
-        active: true
+        active: true,
+        host: true
       };
 
       await set(roomRef, {
@@ -622,7 +622,8 @@
         name: myName,
         score: 0,
         choice: null,
-        active: true
+        active: true,
+        host: false
       };
 
       await update(ref(db, `rooms/${inputRoom}/players/${myPlayerId}`), playerData);
@@ -680,15 +681,14 @@
       });
     }
 
-    // 房主發起再來一局
     async function requestResetRound() {
       if (!isHost || !currentRoomId) return;
+
       await update(ref(db, `rooms/${currentRoomId}`), {
         roundState: 'waiting_consent'
       });
     }
 
-    // 加入人員同意新一局（強制清除每位玩家的出拳紀錄並將狀態轉回 playing）
     async function consentNewRound() {
       if (!currentRoomId) return;
       const snapshot = await get(ref(db, `rooms/${currentRoomId}/players`));
@@ -701,15 +701,6 @@
       }
 
       await update(ref(db, `rooms/${currentRoomId}`), updates);
-
-      // 本地立即重置畫面狀態
-      document.getElementById('resultBanner').innerText = '';
-      document.getElementById('btnReset').classList.add('hidden');
-      document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
-      myChoice = null;
-      hasLockedChoice = false;
-      setButtonsEnabled(true);
-      document.getElementById('consentModal').classList.add('hidden');
     }
 
     function listenToRoom() {
@@ -724,10 +715,6 @@
         const players = data.players || {};
         const playerIds = Object.keys(players);
         const roundState = data.roundState || 'playing';
-
-        if (playerIds.length > 0) {
-          isHost = (playerIds[0] === myPlayerId);
-        }
 
         const listEl = document.getElementById('playersList');
         listEl.innerHTML = '';
@@ -759,7 +746,7 @@
 
           card.innerHTML = `
             <div class="player-info">
-              <span class="player-name">${p.name} ${isMe ? '(我)' : ''} ${pid === playerIds[0] ? '👑' : ''}</span>
+              <span class="player-name">${p.name} ${isMe ? '(我)' : ''} ${p.host ? '👑' : ''}</span>
               <span class="player-status ${statusClass}">${statusText}</span>
             </div>
             <div class="score-badge">分數: ${p.score || 0}</div>
@@ -773,25 +760,28 @@
         const btnReset = document.getElementById('btnReset');
         const consentModal = document.getElementById('consentModal');
 
-        // 當資料庫狀態變回 playing 時，自動幫雙方關閉彈窗並解鎖本地出拳
+        // 當狀態為 playing（新一局開始或剛重置）時，強制同步重置雙方介面與解鎖按鈕
         if (roundState === 'playing') {
           consentModal.classList.add('hidden');
-          if (hasLockedChoice && resultBanner.innerText === '') {
-            // 如果剛好重置，解鎖出拳
-            hasLockedChoice = false;
-            setButtonsEnabled(true);
-            document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+          btnReset.classList.add('hidden');
+          btnReset.innerText = '🔄 再來一局';
+          btnReset.disabled = false;
+          
+          if (resultBanner.innerText !== '') {
+            resultBanner.innerText = '';
           }
+          hasLockedChoice = false;
+          setButtonsEnabled(true);
+          document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
         } else if (roundState === 'waiting_consent') {
           if (!isHost) {
             consentModal.classList.remove('hidden');
           } else {
+            consentModal.classList.add('hidden');
             btnReset.innerText = '等待對方同意...';
             btnReset.disabled = true;
+            btnReset.classList.remove('hidden');
           }
-        } else {
-          btnReset.innerText = '🔄 再來一局';
-          btnReset.disabled = false;
         }
 
         const activePlayerIds = playerIds.filter(pid => players[pid].active !== false);
@@ -827,7 +817,7 @@
             if (myPlayerId === p2Id) synth.playWin(); else synth.playLose();
           }
 
-          if (winnerId && roundState === 'playing' && myPlayerId === p1Id) {
+          if (winnerId && roundState === 'playing' && isHost) {
             const currentScore = players[winnerId].score || 0;
             update(ref(db, `rooms/${currentRoomId}`), {
               roundState: 'scored',
@@ -835,10 +825,8 @@
             });
           }
 
-          if (isHost) {
+          if (isHost && roundState !== 'waiting_consent') {
             btnReset.classList.remove('hidden');
-          } else {
-            btnReset.classList.add('hidden');
           }
         } else {
           if (roundState === 'playing' && resultBanner.innerText === '') {
