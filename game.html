@@ -170,7 +170,7 @@
       background: transparent;
     }
 
-    /* Game Over Modal Overlay */
+    /* Modal Overlay (Start Menu & Game Over) */
     .overlay {
       position: absolute;
       top: 0;
@@ -180,9 +180,9 @@
       background: rgba(13, 2, 33, 0.95);
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
+      justify-content: center;
       align-items: center;
-      gap: 10px;
+      gap: 15px;
       z-index: 10;
       border-radius: 6px;
       padding: 15px 10px;
@@ -191,6 +191,15 @@
 
     .overlay.hidden {
       display: none;
+    }
+
+    .menu-title {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--accent-cyan);
+      text-shadow: 0 0 15px var(--accent-cyan);
+      text-align: center;
+      margin-bottom: 5px;
     }
 
     .game-over-title {
@@ -277,12 +286,12 @@
     .leaderboard-item:nth-child(2) { color: #c0c0c0; font-weight: bold; }
     .leaderboard-item:nth-child(3) { color: #cd7f32; font-weight: bold; }
 
-    .restart-btn {
+    .start-btn, .restart-btn {
       background: var(--accent-pink);
       color: #fff;
       border: none;
-      padding: 8px 20px;
-      font-size: 14px;
+      padding: 10px 24px;
+      font-size: 16px;
       font-weight: bold;
       border-radius: 25px;
       cursor: pointer;
@@ -291,7 +300,7 @@
       margin-top: 5px;
     }
 
-    .restart-btn:active {
+    .start-btn:active, .restart-btn:active {
       transform: scale(0.95);
     }
 
@@ -386,6 +395,13 @@
     <!-- Center Board -->
     <div id="boardWrapper" class="board-wrapper">
       <canvas id="tetris" width="240" height="480"></canvas>
+
+      <!-- Start Menu Modal -->
+      <div id="startMenuModal" class="overlay">
+        <div class="menu-title">霓虹方塊</div>
+        <div style="font-size: 13px; color: #aaa; margin-bottom: 10px; text-align: center;">Neon Tetris Challenge</div>
+        <button class="start-btn" onclick="startGame()">開始遊戲</button>
+      </div>
 
       <!-- Game Over Modal -->
       <div id="gameOverModal" class="overlay hidden">
@@ -491,7 +507,7 @@
     let score = 0;
     let lines = 0;
     let level = 1;
-    let combo = -1; // Combo Counter (-1 means no current streak)
+    let combo = 0; 
     let highScore = localStorage.getItem('neon_tetris_highscore') || 0;
     document.getElementById('highScore').innerText = highScore;
 
@@ -504,6 +520,7 @@
     let dropCounter = 0;
     let dropInterval = 1000;
     let lastTime = 0;
+    let isGameStarted = false;
     let isGameOver = false;
 
     // Lock Delay (落地緩衝時間) 相關變數
@@ -528,6 +545,14 @@
 
     function getRandomPieceType() {
       return Math.floor(Math.random() * 7) + 1;
+    }
+
+    function startGame() {
+      document.getElementById('startMenuModal').classList.add('hidden');
+      isGameStarted = true;
+      spawnPlayer();
+      lastTime = performance.now();
+      update();
     }
 
     function spawnPlayer() {
@@ -607,7 +632,7 @@
       player.matrix.forEach((row, y) => {
         row.forEach((value, x) => {
           if (value !== 0) {
-            grid[y + player.pos.y][x + player.pos.x] = value;
+            grid[y + player.pos.y][x + player.pos.x] = player.type;
           }
         });
       });
@@ -694,26 +719,24 @@
 
     // Trigger visual screen shake & device haptic vibration
     function triggerFeedback(rowCount) {
-      // 1. Screen Shake Class
       boardWrapper.classList.remove('shake-light', 'shake-heavy');
-      void boardWrapper.offsetWidth; // Force Reflow
+      void boardWrapper.offsetWidth; 
       if (rowCount >= 3) {
         boardWrapper.classList.add('shake-heavy');
       } else {
         boardWrapper.classList.add('shake-light');
       }
 
-      // 2. Mobile Haptic Vibration (if supported)
       if (navigator.vibrate) {
         if (rowCount === 4) {
-          navigator.vibrate([40, 30, 40, 30, 80]); // Heavy Tetris Vibration
+          navigator.vibrate([40, 30, 40, 30, 80]); 
         } else {
           navigator.vibrate(35 * rowCount);
         }
       }
     }
 
-    // 依分數動態計算下落速度（10000分以前階梯加速；10000分之後每1000分加速一次）
+    // 依分數動態增加速度（10000分以前階梯加速；10000分之後每1000分增加速度）
     function updateDropSpeed() {
       let speedSteps = 0;
       let currentBase = 100;
@@ -751,22 +774,17 @@
       }
 
       if (rowCount > 0) {
-        combo++; // Increment Combo
-        
-        // 更新右側面板的 Combo 顯示
+        combo++; 
         comboDisplay.innerText = combo;
 
-        // Trigger Screen & Haptic Feedbacks
         triggerFeedback(rowCount);
 
-        // Score Calculation with Combo Bonus
         const lineScores = [0, 100, 300, 500, 800];
         const comboBonus = combo > 0 ? combo * 50 : 0;
         score += (lineScores[rowCount] + comboBonus) * level;
         lines += rowCount;
         level = Math.floor(lines / 10) + 1;
 
-        // 呼叫依分數動態調整速度的函式
         updateDropSpeed();
 
         document.getElementById('score').innerText = score;
@@ -779,7 +797,6 @@
           document.getElementById('highScore').innerText = highScore;
         }
       } else {
-        // Break Combo if no lines cleared
         combo = 0;
         comboDisplay.innerText = 0;
       }
@@ -804,7 +821,6 @@
       context.fillStyle = '#0d0221';
       context.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw Grid Lines
       context.strokeStyle = 'rgba(255, 255, 255, 0.03)';
       context.lineWidth = 0.02;
       for (let x = 0; x < COLS; x++) {
@@ -813,7 +829,6 @@
         }
       }
 
-      // Draw Settled Blocks
       grid.forEach((row, y) => {
         row.forEach((value, x) => {
           if (value !== 0) {
@@ -822,8 +837,7 @@
         });
       });
 
-      // Draw Ghost Piece
-      if (player.matrix && !isGameOver) {
+      if (player.matrix && isGameStarted && !isGameOver) {
         let ghostY = player.pos.y;
         while (!collide(grid, { pos: { x: player.pos.x, y: ghostY + 1 }, matrix: player.matrix })) {
           ghostY++;
@@ -831,16 +845,15 @@
         player.matrix.forEach((row, y) => {
           row.forEach((value, x) => {
             if (value !== 0) {
-              drawBlock(context, x + player.pos.x, y + ghostY, value, true);
+              drawBlock(context, x + player.pos.x, y + ghostY, player.type, true);
             }
           });
         });
 
-        // Draw Active Player Piece
         player.matrix.forEach((row, y) => {
           row.forEach((value, x) => {
             if (value !== 0) {
-              drawBlock(context, x + player.pos.x, y + player.pos.y);
+              drawBlock(context, x + player.pos.x, y + player.pos.y, player.type);
             }
           });
         });
@@ -848,7 +861,6 @@
     }
 
     function drawMiniCanvases() {
-      // Draw Hold
       holdContext.fillStyle = '#150535';
       holdContext.fillRect(0, 0, 4, 4);
       if (holdType) {
@@ -863,7 +875,6 @@
         });
       }
 
-      // Draw Next
       nextContext.fillStyle = '#150535';
       nextContext.fillRect(0, 0, 4, 4);
       if (nextType) {
@@ -880,7 +891,7 @@
     }
 
     function update(time = 0) {
-      if (isGameOver) return;
+      if (!isGameStarted || isGameOver) return;
       const deltaTime = time - lastTime;
       lastTime = time;
 
@@ -904,7 +915,6 @@
       fetchLeaderboard();
     }
 
-    // 取得前 10 名排行榜 (支援各種 GAS 回傳結構)
     function fetchLeaderboard() {
       const listElem = document.getElementById('leaderboardList');
       listElem.innerHTML = '<li style="text-align: center; color: #888;">載入中...</li>';
@@ -938,7 +948,6 @@
         });
     }
 
-    // 提交分數至 GAS
     function submitScore() {
       const nameInput = document.getElementById('nicknameInput');
       const name = nameInput.value.trim();
@@ -995,43 +1004,28 @@
       document.getElementById('level').innerText = 1;
       document.getElementById('gameOverModal').classList.add('hidden');
       spawnPlayer();
+      lastTime = performance.now();
       update();
     }
 
-    // Keyboard Controls
     document.addEventListener('keydown', event => {
+      if (!isGameStarted || isGameOver) return;
       if (document.activeElement === document.getElementById('nicknameInput')) return;
-      if (isGameOver) return;
       
       switch (event.keyCode) {
-        case 37: // Left Arrow
-          playerMove(-1);
-          break;
-        case 39: // Right Arrow
-          playerMove(1);
-          break;
-        case 40: // Down Arrow
-          playerDrop();
-          break;
-        case 90: // Z key - Rotate Counter-Clockwise
-          playerRotate(-1);
-          break;
-        case 88: // X key - Rotate Clockwise
-        case 38: // Up Arrow
-          playerRotate(1);
-          break;
-        case 32: // Space - Hard Drop
-          playerHardDrop();
-          break;
-        case 67: // C key - Hold
-          playerHold();
-          break;
+        case 37: playerMove(-1); break;
+        case 39: playerMove(1); break;
+        case 40: playerDrop(); break;
+        case 90: playerRotate(-1); break;
+        case 88: 
+        case 38: playerRotate(1); break;
+        case 32: playerHardDrop(); break;
+        case 67: playerHold(); break;
       }
     });
 
-    // Touch Controls Handler
     function handleTouch(action) {
-      if (isGameOver) return;
+      if (!isGameStarted || isGameOver) return;
       switch (action) {
         case 'LEFT': playerMove(-1); break;
         case 'RIGHT': playerMove(1); break;
@@ -1043,9 +1037,8 @@
       }
     }
 
-    // Start Game
-    spawnPlayer();
-    update();
+    // 初始化畫面（空畫面預覽）
+    draw();
   </script>
 </body>
 </html>
