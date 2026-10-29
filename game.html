@@ -97,14 +97,14 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      width: 100px;
+      width: 110px;
     }
 
     .panel-box {
       background: var(--card-bg);
       border: 2px solid var(--accent-purple);
       border-radius: 12px;
-      padding: 10px;
+      padding: 8px;
       text-align: center;
       box-shadow: 0 0 10px rgba(112, 0, 255, 0.3);
     }
@@ -352,7 +352,7 @@
         gap: 8px;
       }
       .side-panel {
-        width: 75px;
+        width: 85px;
       }
       .panel-box {
         padding: 6px;
@@ -380,7 +380,8 @@
     <div class="side-panel">
       <div class="panel-box">
         <div class="panel-label">暫存 [C]</div>
-        <canvas id="holdCanvas" class="mini-canvas" width="60" height="60"></canvas>
+        <!-- 放大畫布尺寸為 80x80，避免四格直條被切掉 -->
+        <canvas id="holdCanvas" class="mini-canvas" width="80" height="80"></canvas>
       </div>
       <div class="panel-box">
         <div class="panel-label">分數</div>
@@ -430,7 +431,8 @@
     <div class="side-panel">
       <div class="panel-box">
         <div class="panel-label">下一個</div>
-        <canvas id="nextCanvas" class="mini-canvas" width="60" height="60"></canvas>
+        <!-- 放大畫布尺寸為 80x80，避免四格直條被切掉 -->
+        <canvas id="nextCanvas" class="mini-canvas" width="80" height="80"></canvas>
       </div>
       <div class="panel-box">
         <div class="panel-label">COMBO</div>
@@ -477,8 +479,10 @@
     const BLOCK_SIZE = 24;
 
     context.scale(BLOCK_SIZE, BLOCK_SIZE);
-    holdContext.scale(15, 15);
-    nextContext.scale(15, 15);
+    
+    // 放大預覽畫布的縮放尺度（80x80 畫布，每格 16px，共 5x5 網格空間，確保 I 方塊絕對不被切掉）
+    holdContext.scale(16, 16);
+    nextContext.scale(16, 16);
 
     // Synthwave Neon Color Palette
     const COLORS = [
@@ -717,7 +721,6 @@
       drawMiniCanvases();
     }
 
-    // Trigger visual screen shake & device haptic vibration
     function triggerFeedback(rowCount) {
       boardWrapper.classList.remove('shake-light', 'shake-heavy');
       void boardWrapper.offsetWidth; 
@@ -736,7 +739,6 @@
       }
     }
 
-    // 依分數動態增加速度（10000分以前階梯加速；10000分之後每1000分增加速度）
     function updateDropSpeed() {
       let speedSteps = 0;
       let currentBase = 100;
@@ -860,34 +862,37 @@
       }
     }
 
-    function drawMiniCanvases() {
-      holdContext.fillStyle = '#150535';
-      holdContext.fillRect(0, 0, 4, 4);
-      if (holdType) {
-        const matrix = PIECES[holdType];
-        matrix.forEach((row, y) => {
-          row.forEach((value, x) => {
-            if (value !== 0) {
-              holdContext.fillStyle = COLORS[value];
-              holdContext.fillRect(x + 0.5, y + 0.5, 0.9, 0.9);
-            }
-          });
-        });
-      }
+    // 精準計算置中偏移量，避免四格直條被切掉或位置亂跳
+    function drawPieceOnMiniCanvas(ctx, type) {
+      ctx.fillStyle = '#150535';
+      ctx.fillRect(0, 0, 5, 5);
 
-      nextContext.fillStyle = '#150535';
-      nextContext.fillRect(0, 0, 4, 4);
-      if (nextType) {
-        const matrix = PIECES[nextType];
-        matrix.forEach((row, y) => {
-          row.forEach((value, x) => {
-            if (value !== 0) {
-              nextContext.fillStyle = COLORS[value];
-              nextContext.fillRect(x + 0.5, y + 0.5, 0.9, 0.9);
-            }
-          });
+      if (!type) return;
+
+      const matrix = PIECES[type];
+      const rows = matrix.length;
+      const cols = matrix[0].length;
+
+      // 計算置中偏移
+      const offsetX = (5 - cols) / 2;
+      const offsetY = (5 - rows) / 2;
+
+      matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value !== 0) {
+            ctx.fillStyle = COLORS[type];
+            ctx.shadowColor = COLORS[type];
+            ctx.shadowBlur = 6;
+            ctx.fillRect(x + offsetX + 0.05, y + offsetY + 0.05, 0.9, 0.9);
+            ctx.shadowBlur = 0;
+          }
         });
-      }
+      });
+    }
+
+    function drawMiniCanvases() {
+      drawPieceOnMiniCanvas(holdContext, holdType);
+      drawPieceOnMiniCanvas(nextContext, nextType);
     }
 
     function update(time = 0) {
