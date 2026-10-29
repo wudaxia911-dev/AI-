@@ -355,29 +355,33 @@
       color: #fff;
     }
 
-    /* 專門針對手機小螢幕（<= 450px）進行縮放與置中優化，電腦版完全不受影響 */
+    /* 專門針對手機小螢幕（<= 450px）進行上下左右絕對置中與等比例縮放優化 */
     @media (max-width: 450px) {
       body {
-        padding-top: 50px;
-        justify-content: flex-start;
+        justify-content: center;
+        padding-top: 45px;
+        padding-bottom: 10px;
+        min-height: 100vh;
       }
       .main-container {
-        gap: 6px;
-        padding: 0 4px;
-        transform: scale(0.85);
-        transform-origin: top center;
+        gap: 4px;
+        padding: 0;
+        transform: scale(0.78);
+        transform-origin: center center;
         margin-top: 0;
-        margin-bottom: -30px;
+        margin-bottom: 0;
       }
       .mobile-controls {
-        max-width: 340px;
-        gap: 6px;
-        transform: scale(0.95);
-        transform-origin: top center;
+        max-width: 320px;
+        gap: 5px;
+        transform: scale(0.90);
+        transform-origin: center center;
+        margin-top: 4px;
+        margin-bottom: 0;
       }
       .touch-btn {
-        padding: 10px 0;
-        font-size: 14px;
+        padding: 8px 0;
+        font-size: 13px;
       }
     }
   </style>
