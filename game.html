@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>霓虹方塊 - Neon Tetris</title>
   <style>
     :root {
@@ -53,6 +53,7 @@
       z-index: 20;
       background: rgba(13, 2, 33, 0.85);
       backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border-bottom: 1px solid rgba(0, 240, 255, 0.3);
     }
 
@@ -88,7 +89,7 @@
       flex-direction: row;
       gap: 15px;
       align-items: flex-start;
-      margin-top: 60px;
+      margin-top: 50px;
       max-width: 100vw;
       padding: 10px;
     }
@@ -346,22 +347,29 @@
       color: #fff;
     }
 
-    /* Responsive scaling */
+    /* Responsive scaling for mobile devices */
     @media (max-width: 500px) {
       .main-container {
-        gap: 8px;
+        gap: 6px;
+        margin-top: 45px;
+        padding: 5px;
       }
       .side-panel {
-        width: 85px;
+        width: 82px;
+        gap: 8px;
       }
       .panel-box {
-        padding: 6px;
+        padding: 4px;
       }
       .panel-label {
         font-size: 10px;
       }
       .panel-value {
-        font-size: 14px;
+        font-size: 13px;
+      }
+      canvas.mini-canvas {
+        width: 65px;
+        height: 65px;
       }
     }
   </style>
@@ -380,7 +388,6 @@
     <div class="side-panel">
       <div class="panel-box">
         <div class="panel-label">暫存 [C]</div>
-        <!-- 放大畫布尺寸為 80x80，避免四格直條被切掉 -->
         <canvas id="holdCanvas" class="mini-canvas" width="80" height="80"></canvas>
       </div>
       <div class="panel-box">
@@ -431,7 +438,6 @@
     <div class="side-panel">
       <div class="panel-box">
         <div class="panel-label">下一個</div>
-        <!-- 放大畫布尺寸為 80x80，避免四格直條被切掉 -->
         <canvas id="nextCanvas" class="mini-canvas" width="80" height="80"></canvas>
       </div>
       <div class="panel-box">
@@ -480,7 +486,6 @@
 
     context.scale(BLOCK_SIZE, BLOCK_SIZE);
     
-    // 放大預覽畫布的縮放尺度（80x80 畫布，每格 16px，共 5x5 網格空間，確保 I 方塊絕對不被切掉）
     holdContext.scale(16, 16);
     nextContext.scale(16, 16);
 
@@ -527,11 +532,11 @@
     let isGameStarted = false;
     let isGameOver = false;
 
-    // Lock Delay (落地緩衝時間) 相關變數
+    // Lock Delay 相關變數
     let lockTimer = null;
-    const LOCK_DELAY = 500; // 觸底後給予 500ms 滑移時間
+    const LOCK_DELAY = 500;
     let lockResetCount = 0;
-    const MAX_LOCK_RESETS = 15; // 觸底移動/旋轉重置上限
+    const MAX_LOCK_RESETS = 15;
 
     let player = {
       pos: {x: 0, y: 0},
@@ -862,7 +867,6 @@
       }
     }
 
-    // 精準計算置中偏移量，避免四格直條被切掉或位置亂跳
     function drawPieceOnMiniCanvas(ctx, type) {
       ctx.fillStyle = '#150535';
       ctx.fillRect(0, 0, 5, 5);
@@ -873,7 +877,6 @@
       const rows = matrix.length;
       const cols = matrix[0].length;
 
-      // 計算置中偏移
       const offsetX = (5 - cols) / 2;
       const offsetY = (5 - rows) / 2;
 
@@ -1042,7 +1045,7 @@
       }
     }
 
-    // 初始化畫面（空畫面預覽）
+    // 初始化繪製
     draw();
   </script>
 </body>
