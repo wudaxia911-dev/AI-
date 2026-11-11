@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>吳冠緯 | 個人首頁</title>
     
+    <!-- 網站描述與 Google 搜尋定位設定 -->
+    <meta name="description" content="大同數媒系吳大蝦的直覺網頁課程專案，紀錄與 AI 協作互動並開發出的網頁作品。">
+
+    <!-- Open Graph / 社群分享設定 (LINE, Facebook 等) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://wudaxia911-dev.github.io/AI-/index.html">
+    <meta property="og:title" content="吳冠緯 | 個人首頁">
+    <meta property="og:description" content="大同數媒系吳大蝦的直覺網頁課程專案，紀錄與 AI 協作互動並開發出的網頁作品。">
+    <meta property="og:image" content="https://wudaxia911-dev.github.io/AI-/og.jpg">
+
+    <!-- 瀏覽器分頁與手機主畫面小圖示 -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+
     <!-- Google Tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y7QMR9WVZE"></script>
     <script>
@@ -304,7 +318,12 @@
                         <span class="text-gradient">吳冠緯</span>
                     </h1>
 
-                    <p class="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-2xl">
+                    <!-- 網站名稱下方顯示的一句話定位 -->
+                    <p class="text-base sm:text-lg text-cyan-200/90 font-bold tracking-wide">
+                        大同數媒系吳大蝦的直覺網頁課程專案，紀錄與 AI 協作互動並開發出的網頁作品。
+                    </p>
+
+                    <p class="text-sm sm:text-base text-slate-300 font-medium leading-relaxed max-w-2xl">
                         大同大學數位媒體設計學系學生（2026年至今，預計於2027年7月畢業），致力於遊戲專案內容與模組開發。
                     </p>
 
@@ -324,6 +343,26 @@
                             <span>遊玩線上猜拳 (RPS)</span>
                         </a>
                     </div>
+
+                    <!-- 首頁分享按鈕區塊 -->
+                    <div class="pt-3 border-t border-white/10 flex flex-wrap items-center justify-center md:justify-start gap-3">
+                        <span class="text-xs font-bold text-slate-400 flex items-center gap-1.5 mr-1">
+                            <i class="fa-solid fa-share-nodes text-cyan-400"></i> 分享專案：
+                        </span>
+                        <!-- LINE 分享按鈕 -->
+                        <a id="share-line" href="#" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-xl bg-[#06C755]/20 hover:bg-[#06C755]/30 text-[#06C755] border border-[#06C755]/40 text-xs font-bold transition-all inline-flex items-center gap-1.5">
+                            <i class="fa-brands fa-line text-sm"></i> LINE
+                        </a>
+                        <!-- Facebook 分享按鈕 -->
+                        <a id="share-fb" href="#" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-xl bg-[#1877F2]/20 hover:bg-[#1877F2]/30 text-[#1877F2] border border-[#1877F2]/40 text-xs font-bold transition-all inline-flex items-center gap-1.5">
+                            <i class="fa-brands fa-facebook text-sm"></i> Facebook
+                        </a>
+                        <!-- 手機系統分享 / 複製網址按鈕 -->
+                        <button onclick="handleNativeShare()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold transition-all inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-link text-sm text-cyan-400"></i> <span id="share-btn-text">分享網址</span>
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -637,6 +676,43 @@
     </div>
 
     <script>
+        // 初始化社群分享按鈕的連結
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUrl = window.location.href;
+            const shareTitle = "吳冠緯 | 個人首頁 - 大同數媒系吳大蝦的直覺網頁課程專案";
+            
+            // LINE 分享連結
+            document.getElementById('share-line').href = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(currentUrl)}`;
+            
+            // Facebook 分享連結
+            document.getElementById('share-fb').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+
+            // 根據是否支援手機系統分享調整按鈕文字
+            if (navigator.share) {
+                document.getElementById('share-btn-text').innerText = '系統分享';
+            } else {
+                document.getElementById('share-btn-text').innerText = '複製網址';
+            }
+        });
+
+        // 手機系統分享或電腦複製網址函式
+        function handleNativeShare() {
+            const currentUrl = window.location.href;
+            const shareData = {
+                title: '吳冠緯 | 個人首頁',
+                text: '大同數媒系吳大蝦的直覺網頁課程專案，紀錄與 AI 協作互動並開發出的網頁作品。',
+                url: currentUrl
+            };
+
+            if (navigator.share) {
+                navigator.share(shareData).catch((err) => {
+                    console.log('Share error:', err);
+                });
+            } else {
+                copyToClipboard(currentUrl, '網址已成功複製！');
+            }
+        }
+
         function toggleMobileMenu() {
             const menu = document.getElementById('mobile-menu');
             const icon = document.getElementById('menu-icon');
