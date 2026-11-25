@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WDX 危險感知 | 網址威脅偵查小遊戲</title>
+    <meta name="description" content="以互動雷達偵查小遊戲方式分析輸入網址的潛在風險、可疑網域特徵與中毒釣魚警訊，幫助快速建立網路安全危險感知。">
+
+    <!-- Open Graph / 社群分享設定 (LINE, Facebook 等) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://wudaxia911-dev.github.io/AI-/crisis.html">
+    <meta property="og:title" content="WDX 危險感知 | 網址威脅偵查小遊戲">
+    <meta property="og:description" content="以互動雷達偵查小遊戲方式分析輸入網址的潛在風險、可疑網域特徵與中毒釣魚警訊，幫助快速建立網路安全危險感知。">
+    <meta property="og:image" content="https://wudaxia911-dev.github.io/AI-/crisisog.jpg">
+
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y7QMR9WVZE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y7QMR9WVZE');
+    </script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            950: '#0a1120',
+                            900: '#101c33',
+                            800: '#182847',
+                        },
+                        wdx: {
+                            mint: '#38d399',
+                            blue: '#3b82f6',
+                            purple: '#9333ea',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a1120;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(56, 211, 153, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 45%),
+                radial-gradient(circle at 50% 85%, rgba(147, 51, 234, 0.08) 0%, transparent 50%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(24, 40, 71, 0.45);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        }
+        .glass-card-hover {
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+        .glass-card-hover:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 211, 153, 0.35);
+            background: rgba(24, 40, 71, 0.65);
+        }
+        .wdx-gradient-text {
+            background: linear-gradient(90deg, #38d399 0%, #3b82f6 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* 雷達掃描動畫 */
+        .radar-ring {
+            background: radial-gradient(circle, rgba(56, 211, 153, 0.06) 0%, rgba(59, 130, 246, 0.03) 65%, rgba(10, 17, 32, 0.7) 100%);
+            border: 1px solid rgba(56, 211, 153, 0.25);
+        }
+        .radar-sweep {
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            background: conic-gradient(from 0deg, rgba(56, 211, 153, 0.42) 0deg, rgba(56, 211, 153, 0.08) 65deg, transparent 75deg);
+            animation: radarSpin 2.2s linear infinite;
+        }
+        @keyframes radarSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a1120;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e325c;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-wdx-blue selection:text-white pb-12">
+
+    <!-- Top Navigation -->
+    <header class="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <a href="index.html" class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                返回首頁
+            </a>
+            <span class="text-slate-600">|</span>
+            <h1 class="text-lg sm:text-xl font-bold tracking-tight">
+                <span class="wdx-gradient-text font-extrabold">WDX</span> 危險感知
+            </h1>
+        </div>
+        <div class="text-xs text-slate-400 flex items-center gap-2">
+            <span id="status-dot" class="inline-block w-2 h-2 rounded-full bg-wdx-mint animate-pulse"></span>
+            <span id="status-text">威脅雷達待命中</span>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6">
+
+        <!-- Title & Game HUD Bar -->
+        <section class="glass-card rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <svg class="w-5 h-5 text-wdx-mint shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">危險感知</h2>
+                    <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-wdx-blue/20 text-blue-300 border border-wdx-blue/30">網址偵查小遊戲</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1 pl-7">輸入可疑網址啟動雷達掃描，辨識惡意下載、釣魚偽裝與高風險特徵，累積你的資安防禦經驗值</p>
+            </div>
+
+            <!-- 遊戲戰績小面板 -->
+            <div class="flex items-center gap-2.5 self-start sm:self-center">
+                <div class="bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-center">
+                    <p class="text-[10px] text-slate-400">偵查次數</p>
+                    <p id="hud-scans" class="text-sm font-bold text-wdx-mint">0</p>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-center">
+                    <p class="text-[10px] text-slate-400">防禦分數</p>
+                    <p id="hud-score" class="text-sm font-bold text-sky-400">0</p>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-center">
+                    <p class="text-[10px] text-slate-400">警戒等級</p>
+                    <p id="hud-rank" class="text-sm font-bold text-purple-300">見習偵查員</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error / Status Alert -->
+        <div id="alert-banner" class="hidden glass-card border-amber-500/40 bg-amber-500/10 text-amber-200 px-4 py-3 rounded-xl text-sm flex items-center justify-between">
+            <span id="alert-message"></span>
+            <button onclick="document.getElementById('alert-banner').classList.add('hidden')" class="text-amber-300 hover:text-white ml-4 cursor-pointer">✕</button>
+        </div>
+
+        <!-- 中間網址輸入與雷達偵查區 -->
+        <section class="glass-card rounded-2xl p-5 sm:p-6 relative overflow-hidden space-y-5">
+            <div class="absolute -right-8 -top-8 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <form id="scan-form" onsubmit="startScan(event)" class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-1">
+                    <input type="text" id="url-input" placeholder="輸入要偵查的網址，例如：https://example.com 或 http://free-gift.tk/login.exe"
+                           aria-label="輸入要偵查的網址"
+                           class="w-full bg-navy-950/70 text-white text-sm sm:text-base rounded-xl px-4 py-3 border border-white/15 focus:outline-none focus:border-wdx-mint placeholder-slate-500 transition-colors">
+                </div>
+                <button type="submit" id="btn-scan" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-600 hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-blue-500/20 cursor-pointer shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <span id="btn-scan-text">啟動雷達偵查</span>
+                </button>
+            </form>
+
+            <!-- 快速測試樣本（方便體驗不同危險程度） -->
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <span class="text-slate-400">快速試玩樣本：</span>
+                <button type="button" onclick="fillSample('https://github.com/')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-slate-300 hover:text-wdx-mint border border-white/10 transition-colors cursor-pointer">
+                    🟢 安全網站樣本
+                </button>
+                <button type="button" onclick="fillSample('http://bit.ly/3xClaim-Reward')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-white/10 transition-colors cursor-pointer">
+                    🟡 可疑短網址樣本
+                </button>
+                <button type="button" onclick="fillSample('http://192.168.50.12/steam-login-verify/update.exe')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-white/10 transition-colors cursor-pointer">
+                    🔴 高危中毒釣魚樣本
+                </button>
+            </div>
+
+            <!-- 掃描動畫區 (掃描中顯示) -->
+            <div id="radar-stage" class="hidden py-6 flex flex-col items-center justify-center text-center space-y-3 bg-navy-950/50 rounded-2xl border border-white/10">
+                <div class="relative w-28 h-28 rounded-full radar-ring flex items-center justify-center overflow-hidden">
+                    <div class="radar-sweep"></div>
+                    <div class="absolute inset-4 rounded-full border border-wdx-mint/20"></div>
+                    <div class="absolute inset-9 rounded-full border border-wdx-mint/20"></div>
+                    <span class="relative z-10 text-2xl">📡</span>
+                </div>
+                <p id="radar-log" class="text-sm font-semibold text-wdx-mint">正在解析網域結構與加密協定...</p>
+                <p class="text-xs text-slate-400">比對危險副檔名、釣魚關鍵字、IP 位址與高風險後綴</p>
+            </div>
+        </section>
+
+        <!-- 偵查結果與互動小挑戰區 -->
+        <section id="result-section" class="hidden space-y-6">
+
+            <!-- 危險度儀表板卡片 -->
+            <div class="glass-card rounded-2xl p-5 sm:p-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-white/10">
+                    <div>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <span id="threat-badge" class="text-xs font-bold px-3 py-1 rounded-full border">--</span>
+                            <span id="target-domain-label" class="text-xs text-slate-400 break-all">--</span>
+                        </div>
+                        <h3 id="threat-headline" class="text-xl sm:text-2xl font-bold text-white mt-2">--</h3>
+                        <p id="threat-summary" class="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">--</p>
+                    </div>
+
+                    <div class="bg-navy-950/60 border border-white/10 rounded-2xl px-5 py-3 text-center shrink-0">
+                        <p class="text-[11px] text-slate-400">危險指數</p>
+                        <p id="risk-score-display" class="text-3xl sm:text-4xl font-extrabold text-white mt-0.5">--<span class="text-sm font-semibold text-slate-400">/100</span></p>
+                    </div>
+                </div>
+
+                <!-- 危險度進度條 -->
+                <div class="mt-4">
+                    <div class="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
+                        <div id="risk-bar" class="h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- 偵查細項清單 -->
+                <div id="findings-list" class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+
+            <!-- 小遊戲互動關卡：你的危險感知判斷 -->
+            <div class="glass-card glass-card-hover rounded-2xl p-5 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="text-xs font-semibold text-wdx-mint">小遊戲挑戰 · 危機應變判斷</span>
+                        <h3 class="text-lg font-bold text-white mt-0.5">面對這個網址，你會怎麼做？</h3>
+                    </div>
+                    <span id="game-reward-hint" class="text-xs text-slate-400">答對加 +20 防禦分數</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                    <button type="button" onclick="answerChallenge('safe')" class="p-3.5 rounded-xl bg-white/5 hover:bg-emerald-500/15 border border-white/10 hover:border-emerald-400/40 text-left transition-all cursor-pointer">
+                        <p class="text-sm font-bold text-white">🟢 安心開啟</p>
+                        <p class="text-xs text-slate-400 mt-1">看起來正常，可直接點擊瀏覽</p>
+                    </button>
+                    <button type="button" onclick="answerChallenge('cautious')" class="p-3.5 rounded-xl bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-400/40 text-left transition-all cursor-pointer">
+                        <p class="text-sm font-bold text-white">🟡 提高警覺</p>
+                        <p class="text-xs text-slate-400 mt-1">先不輸入帳密、不下載檔案</p>
+                    </button>
+                    <button type="button" onclick="answerChallenge('block')" class="p-3.5 rounded-xl bg-white/5 hover:bg-rose-500/15 border border-white/10 hover:border-rose-400/40 text-left transition-all cursor-pointer">
+                        <p class="text-sm font-bold text-white">🔴 立即封鎖遠離</p>
+                        <p class="text-xs text-slate-400 mt-1">高度可疑，直接關閉不點擊</p>
+                    </button>
+                </div>
+
+                <div id="challenge-feedback" class="hidden mt-4 p-3.5 rounded-xl text-xs sm:text-sm border"></div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="max-w-5xl mx-auto px-4 sm:px-6 mt-10 text-center text-xs text-slate-500">
+        <p>WDX 危險感知小遊戲 · 透過網址結構與常見威脅特徵進行即時風險評估（靜態啟發式偵測僅供安全參考，重要連結仍建議搭配防毒與官方查證）</p>
+    </footer>
+
+    <script>
+        let scansCount = 0;
+        let scoreCount = 0;
+        let currentCorrectAction = 'cautious';
+        let challengeAnswered = false;
+        let lastAnalyzedUrl = '';
+
+        const HIGH_RISK_TLDS = ['.tk', '.ml', '.ga', '.cf', '.gq', '.zip', '.mov', '.top', '.xyz', '.click', '.loan', '.work', '.cfd', '.sbs'];
+        const RISKY_EXTENSIONS = ['.exe', '.msi', '.bat', '.cmd', '.scr', '.vbs', '.js', '.apk', '.dmg', '.pkg', '.iso', '.rar', '.7z'];
+        const PHISHING_KEYWORDS = ['login', 'verify', 'update', 'wallet', 'signin', 'account', 'security', 'bonus', 'gift', 'claim', 'free', 'airdrop', 'support', 'billing', 'password', 'confirm'];
+        const BRAND_IMPERSONATION = ['google', 'apple', 'microsoft', 'line', 'facebook', 'instagram', 'steam', 'paypal', 'netflix', 'amazon', 'taiwan', 'post', 'bank'];
+
+        function showAlert(msg) {
+            const banner = document.getElementById('alert-banner');
+            document.getElementById('alert-message').textContent = msg;
+            banner.classList.remove('hidden');
+        }
+
+        function hideAlert() {
+            document.getElementById('alert-banner').classList.add('hidden');
+        }
+
+        function fillSample(sampleUrl) {
+            document.getElementById('url-input').value = sampleUrl;
+            hideAlert();
+        }
+
+        function updateHud() {
+            document.getElementById('hud-scans').textContent = scansCount;
+            document.getElementById('hud-score').textContent = scoreCount;
+
+            let rank = '見習偵查員';
+            if (scoreCount >= 120) rank = '資安守門大師';
+            else if (scoreCount >= 60) rank = '進階威脅獵手';
+            else if (scoreCount >= 20) rank = '敏銳防禦員';
+            document.getElementById('hud-rank').textContent = rank;
+        }
+
+        function normalizeAndParseUrl(rawInput) {
+            let trimmed = rawInput.trim();
+            if (!trimmed) return null;
+            if (!/^https?:\/\//i.test(trimmed)) {
+                trimmed = 'http://' + trimmed;
+            }
+            try {
+                const parsed = new URL(trimmed);
+                if (!parsed.hostname || !parsed.hostname.includes('.')) {
+                    return null;
+                }
+                return parsed;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function analyzeUrl(parsedUrl, rawInput) {
+            let score = 5;
+            const findings = [];
+            const hostname = parsedUrl.hostname.toLowerCase();
+            const fullLower = parsedUrl.href.toLowerCase();
+            const pathnameLower = parsedUrl.pathname.toLowerCase();
+
+            // 1. 加密協定檢查
+            if (parsedUrl.protocol === 'http:') {
+                score += 18;
+                findings.push({
+                    level: 'warn',
+                    title: '未啟用 HTTPS 加密',
+                    detail: '使用明文 HTTP 連線，傳輸過程較易被竊聽或竄改。'
+                });
+            } else {
+                findings.push({
+                    level: 'safe',
+                    title: '使用 HTTPS 加密傳輸',
+                    detail: '連線具備 SSL/TLS 加密基礎（註：釣魚網站也可能申請免費 HTTPS）。'
+                });
+            }
+
+            // 2. IP 位址直接連線
+            const isIpv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
+            if (isIpv4) {
+                score += 32;
+                findings.push({
+                    level: 'danger',
+                    title: '直接使用 IP 位址而非網域',
+                    detail: '一般正規服務少用純數字 IP 網址，惡意跳板或未註冊伺服器較常見。'
+                });
+            }
+
+            // 3. 高風險頂級網域 (TLD)
+            const matchedTld = HIGH_RISK_TLDS.find(tld => hostname.endsWith(tld));
+            if (matchedTld) {
+                score += 24;
+                findings.push({
+                    level: 'danger',
+                    title: `高風險網域後綴 (${matchedTld})`,
+                    detail: '此類後綴在免費濫用或短期釣魚網站中出現頻率較高。'
+                });
+            }
+
+            // 4. 可疑執行檔 / 壓縮檔下載路徑（中毒風險指標）
+            const matchedExt = RISKY_EXTENSIONS.find(ext => pathnameLower.endsWith(ext));
+            if (matchedExt) {
+                score += 35;
+                findings.push({
+                    level: 'danger',
+                    title: `指向高風險檔案 (${matchedExt})`,
+                    detail: '網址結尾為可執行檔或壓縮檔，若來源不明極可能帶有木馬或病毒。'
+                });
+            }
+
+            // 5. 釣魚 / 誘導關鍵字
+            const matchedKeywords = PHISHING_KEYWORDS.filter(kw => fullLower.includes(kw));
+            if (matchedKeywords.length >= 2) {
+                score += 22;
+                findings.push({
+                    level: 'danger',
+                    title: `含多重誘導關鍵字 (${matchedKeywords.slice(0, 3).join(', ')})`,
+                    detail: '同時出現登入、驗證、獎勵或更新等字眼，常見於帳號釣魚頁面。'
+                });
+            } else if (matchedKeywords.length === 1) {
+                score += 10;
+                findings.push({
+                    level: 'warn',
+                    title: `包含敏感字詞 (${matchedKeywords[0]})`,
+                    detail: '若要求輸入帳密或驗證碼，請務必核對是否為官方網域。'
+                });
+            }
+
+            // 6. 子網域過多或混淆字元
+            const dotCount = hostname.split('.').length - 1;
+            const hasAtSymbol = rawInput.includes('@');
+            const hasPunycode = hostname.includes('xn--');
+            if (hasAtSymbol || hasPunycode || dotCount >= 4) {
+                score += 22;
+                findings.push({
+                    level: 'danger',
+                    title: '網址結構具有混淆特徵',
+                    detail: hasAtSymbol
+                        ? '網址中包含「@」符號，可能用來偽裝真實造訪的伺服器。'
+                        : hasPunycode
+                            ? '包含 Punycode (xn--) 國際化字元，需防範同形異義字偽裝。'
+                            : '子網域層級過多，常見於刻意拉長網址以掩飾真實主網域。'
+                });
+            }
+
+            // 7. 知名品牌字詞出現在非官方主網域
+            const impersonated = BRAND_IMPERSONATION.find(brand => {
+                if (!hostname.includes(brand)) return false;
+                const officialSuffixes = [
+                    `${brand}.com`, `${brand}.com.tw`, `${brand}.org`, `${brand}.net`,
+                    `${brand}.co.jp`, `${brand}.gov.tw`, `${brand}.me`
+                ];
+                return !officialSuffixes.some(suf => hostname === suf || hostname.endsWith('.' + suf));
+            });
+            if (impersonated) {
+                score += 24;
+                findings.push({
+                    level: 'danger',
+                    title: `疑似借用「${impersonated}」字詞的網域`,
+                    detail: '網域中包含知名品牌或機構名稱但非常見主網域，需高度防範仿冒。'
+                });
+            }
+
+            // 8. 短網址服務
+            const shorteners = ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly', 'is.gd', 'reurl.cc', 'lihi.cc'];
+            if (shorteners.some(s => hostname === s || hostname.endsWith('.' + s))) {
+                score += 16;
+                findings.push({
+                    level: 'warn',
+                    title: '短網址隱藏真實目的地',
+                    detail: '點擊前無法直接看出最終跳轉網域，建議確認來源可信度後再開啟。'
+                });
+            }
+
+            score = Math.max(0, Math.min(100, score));
+
+            let riskLevel = 'low';
+            let badgeText = '🟢 低危險度 · 相對安全';
+            let badgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40';
+            let headline = '未發現明顯高危特徵';
+            let summary = '從網址結構與常見威脅特徵來看暫無重大警訊，但仍建議保持基本資安習慣，不隨意下載未知程式。';
+            let barClass = 'bg-gradient-to-r from-emerald-400 to-teal-300';
+            currentCorrectAction = 'safe';
+
+            if (score >= 55) {
+                riskLevel = 'high';
+                badgeText = '🔴 高危險度 · 強烈警戒';
+                badgeClass = 'bg-rose-500/20 text-rose-300 border-rose-400/40';
+                headline = '偵測到多項高風險警訊！';
+                summary = '此網址具有高度釣魚、偽裝或惡意檔案下載風險，可能導致中毒或帳號遭竊，建議立即停止造訪。';
+                barClass = 'bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500';
+                currentCorrectAction = 'block';
+            } else if (score >= 25) {
+                riskLevel = 'medium';
+                badgeText = '🟡 中危險度 · 建議警覺';
+                badgeClass = 'bg-amber-500/20 text-amber-300 border-amber-400/40';
+                headline = '發現部分可疑特徵，請謹慎應對';
+                summary = '網址存在未加密、短網址或敏感關鍵字等潛在風險，若要開啟請避免輸入帳密或下載不明附件。';
+                barClass = 'bg-gradient-to-r from-emerald-400 via-amber-400 to-orange-400';
+                currentCorrectAction = 'cautious';
+            }
+
+            return {
+                score,
+                riskLevel,
+                badgeText,
+                badgeClass,
+                headline,
+                summary,
+                barClass,
+                findings
+            };
+        }
+
+        function startScan(event) {
+            event.preventDefault();
+            const rawInput = document.getElementById('url-input').value;
+            const parsed = normalizeAndParseUrl(rawInput);
+
+            if (!parsed) {
+                showAlert('請輸入有效的網址格式（例如：https://example.com 或 example.com）。');
+                return;
+            }
+
+            hideAlert();
+
+            const btnScan = document.getElementById('btn-scan');
+            const btnScanText = document.getElementById('btn-scan-text');
+            const radarStage = document.getElementById('radar-stage');
+            const radarLog = document.getElementById('radar-log');
+            const resultSection = document.getElementById('result-section');
+
+            btnScan.disabled = true;
+            btnScanText.textContent = '偵查中...';
+            radarStage.classList.remove('hidden');
+            resultSection.classList.add('hidden');
+            document.getElementById('challenge-feedback').classList.add('hidden');
+
+            document.getElementById('status-dot').className = 'inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping';
+            document.getElementById('status-text').textContent = '雷達掃描進行中...';
+
+            const logs = [
+                '正在解析網域結構與加密協定...',
+                '正在比對高風險副檔名與釣魚關鍵字...',
+                '正在計算危險指數與生成防禦關卡...'
+            ];
+            let step = 0;
+            radarLog.textContent = logs[0];
+            const logTimer = setInterval(() => {
+                step = (step + 1) % logs.length;
+                radarLog.textContent = logs[step];
+            }, 350);
+
+            setTimeout(() => {
+                clearInterval(logTimer);
+                radarStage.classList.add('hidden');
+                btnScan.disabled = false;
+                btnScanText.textContent = '啟動雷達偵查';
+
+                const report = analyzeUrl(parsed, rawInput);
+                renderReport(parsed, report);
+
+                if (parsed.href !== lastAnalyzedUrl) {
+                    scansCount += 1;
+                    scoreCount += 10;
+                    lastAnalyzedUrl = parsed.href;
+                    updateHud();
+                }
+
+                challengeAnswered = false;
+                document.getElementById('status-dot').className = 'inline-block w-2 h-2 rounded-full bg-wdx-mint animate-pulse';
+                document.getElementById('status-text').textContent = '偵查完成 · 請完成危機判斷';
+            }, 1050);
+        }
+
+        function renderReport(parsedUrl, report) {
+            const resultSection = document.getElementById('result-section');
+            resultSection.classList.remove('hidden');
+
+            const badge = document.getElementById('threat-badge');
+            badge.textContent = report.badgeText;
+            badge.className = `text-xs font-bold px-3 py-1 rounded-full border ${report.badgeClass}`;
+
+            document.getElementById('target-domain-label').textContent = `目標：${parsedUrl.href}`;
+            document.getElementById('threat-headline').textContent = report.headline;
+            document.getElementById('threat-summary').textContent = report.summary;
+
+            const scoreDisplay = document.getElementById('risk-score-display');
+            scoreDisplay.innerHTML = `${report.score}<span class="text-sm font-semibold text-slate-400">/100</span>`;
+
+            const bar = document.getElementById('risk-bar');
+            bar.className = `h-2.5 rounded-full transition-all duration-500 ${report.barClass}`;
+            bar.style.width = `${report.score}%`;
+
+            const listEl = document.getElementById('findings-list');
+            listEl.innerHTML = report.findings.map(item => {
+                const styleMap = {
+                    safe: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
+                    warn: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
+                    danger: 'border-rose-500/35 bg-rose-500/10 text-rose-300'
+                };
+                const iconMap = {
+                    safe: '✓',
+                    warn: '!',
+                    danger: '✕'
+                };
+                return `
+                    <div class="rounded-xl p-3.5 bg-white/5 border border-white/10 flex items-start gap-3">
+                        <span class="w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${styleMap[item.level]}">
+                            ${iconMap[item.level]}
+                        </span>
+                        <div class="min-w-0">
+                            <p class="text-sm font-bold text-white">${item.title}</p>
+                            <p class="text-xs text-slate-300 mt-0.5 leading-relaxed">${item.detail}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function answerChallenge(chosenAction) {
+            const feedbackEl = document.getElementById('challenge-feedback');
+            feedbackEl.classList.remove('hidden');
+
+            const isExactMatch = chosenAction === currentCorrectAction;
+            const isReasonablySafe =
+                (currentCorrectAction === 'high' && chosenAction === 'block') ||
+                (currentCorrectAction === 'medium' && (chosenAction === 'cautious' || chosenAction === 'block')) ||
+                (currentCorrectAction === 'low' && (chosenAction === 'safe' || chosenAction === 'cautious'));
+
+            if (isExactMatch) {
+                if (!challengeAnswered) {
+                    scoreCount += 20;
+                    challengeAnswered = true;
+                    updateHud();
+                }
+                feedbackEl.className = 'mt-4 p-3.5 rounded-xl text-xs sm:text-sm border border-emerald-400/40 bg-emerald-500/15 text-emerald-200';
+                feedbackEl.innerHTML = '🎯 <strong>判斷精準（+20 防禦分數）！</strong>你的危險感知很到位，能根據網址風險做出最合適的應對。';
+            } else if (isReasonablySafe) {
+                if (!challengeAnswered) {
+                    scoreCount += 10;
+                    challengeAnswered = true;
+                    updateHud();
+                }
+                feedbackEl.className = 'mt-4 p-3.5 rounded-xl text-xs sm:text-sm border border-sky-400/40 bg-sky-500/15 text-sky-200';
+                feedbackEl.innerHTML = '🛡️ <strong>安全優先（+10 防禦分數）！</strong>雖然不是最貼近評級的選項，但在網路上採取較高防禦姿態通常是安全的。';
+            } else {
+                feedbackEl.className = 'mt-4 p-3.5 rounded-xl text-xs sm:text-sm border border-rose-400/40 bg-rose-500/15 text-rose-200';
+                const adviceMap = {
+                    block: '此網址危險指數偏高，直接點擊或開啟可能面臨中毒或釣魚風險，建議選擇「立即封鎖遠離」。',
+                    cautious: '此網址帶有潛在警訊，建議先「提高警覺」，不隨意輸入帳密或下載檔案。',
+                    safe: '此網址目前未見明顯高危警訊，但保持謹慎也很不錯。'
+                };
+                feedbackEl.innerHTML = `⚠️ <strong>再想一下！</strong>${adviceMap[currentCorrectAction]}`;
+            }
+        }
+    </script>
+</body>
+</html>
