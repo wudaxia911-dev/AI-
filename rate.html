@@ -12,7 +12,6 @@
     <meta property="og:title" content="WDX 匯率轉換站 | 即時市場外匯換算">
     <meta property="og:description" content="結合即時外匯市場數據的個人匯率轉換站，支援新台幣、日圓、美元、歐元等上百種全球貨幣雙向即時換算與熱門幣別快速切換。">
     <meta property="og:image" content="https://wudaxia911-dev.github.io/AI-/rateog.jpg">
-
     <link rel="icon" type="image/png" href="favicon.png">
 
     <!-- Google tag (gtag.js) -->
@@ -172,4 +171,585 @@
             </div>
 
             <div class="flex items-center gap-2.5 self-start sm:self-center">
-                <button id="btn-refresh" onclick="fetchExchangeRates()" class="inline-flex items-center gap-2 px-4 py-2
+                <button id="btn-refresh" onclick="fetchExchangeRates()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm text-white bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-600 hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-blue-500/20 cursor-pointer">
+                    <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span>更新匯率</span>
+                </button>
+                <button onclick="resetDefaultPair()" class="px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer">
+                    重設台幣/日圓
+                </button>
+            </div>
+        </section>
+
+        <!-- Error / Status Alert (與 weather.html 警示橫幅一致) -->
+        <div id="status-banner" class="hidden glass-card border-amber-500/40 bg-amber-500/10 text-amber-200 px-4 py-3 rounded-xl text-sm flex items-center justify-between">
+            <span id="status-message"></span>
+            <button onclick="document.getElementById('status-banner').classList.add('hidden')" class="text-amber-300 hover:text-white ml-4">✕</button>
+        </div>
+
+        <!-- 主換算卡片 (兩側輸入 + 中央互換 + 即時匯率摘要) -->
+        <section class="glass-card rounded-2xl p-5 sm:p-6 relative overflow-hidden">
+            <div class="absolute -right-8 -top-8 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 sm:gap-5 items-center">
+                
+                <!-- 左側：持有貨幣 / 輸入金額 -->
+                <div class="currency-input-panel rounded-xl p-4 sm:p-5 flex flex-col justify-between gap-3">
+                    <div class="flex items-center justify-between">
+                        <label for="left-currency" class="text-xs font-semibold text-wdx-mint">持有貨幣（輸入金額）</label>
+                        <button type="button" id="clear-left" class="text-xs text-slate-400 hover:text-white transition-colors cursor-pointer">清除</button>
+                    </div>
+                    <select id="left-currency" aria-label="選擇左側貨幣" class="w-full bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-xl px-3.5 py-2.5 pr-10 border border-white/10 focus:outline-none focus:border-wdx-mint cursor-pointer transition-colors">
+                        <option value="TWD">TWD - 新台幣 (台灣)</option>
+                    </select>
+                    <div class="pt-1">
+                        <input type="number" id="left-amount" inputmode="decimal" step="any" min="0" value="1000" placeholder="0.00" aria-label="左側金額"
+                               class="w-full bg-transparent text-3xl sm:text-4xl font-bold tracking-tight text-white focus:outline-none placeholder-slate-600">
+                    </div>
+                </div>
+
+                <!-- 中央互換按鈕 -->
+                <div class="flex justify-center">
+                    <button type="button" id="swap-btn" title="互換左右幣別" aria-label="互換左右幣別"
+                            class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 hover:border-wdx-mint/40 flex items-center justify-center text-wdx-mint active:scale-95 transition-all cursor-pointer">
+                        <svg id="swap-icon" class="w-5 h-5 rotate-90 md:rotate-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- 右側：目標貨幣 / 換算結果 -->
+                <div class="currency-input-panel currency-input-panel-right rounded-xl p-4 sm:p-5 flex flex-col justify-between gap-3">
+                    <div class="flex items-center justify-between">
+                        <label for="right-currency" class="text-xs font-semibold text-sky-400">目標貨幣（換算結果）</label>
+                        <button type="button" id="copy-right" class="text-xs text-slate-400 hover:text-wdx-mint transition-colors cursor-pointer">
+                            <span id="copy-text">複製金額</span>
+                        </button>
+                    </div>
+                    <select id="right-currency" aria-label="選擇右側貨幣" class="w-full bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-xl px-3.5 py-2.5 pr-10 border border-white/10 focus:outline-none focus:border-wdx-blue cursor-pointer transition-colors">
+                        <option value="JPY">JPY - 日圓 (日本)</option>
+                    </select>
+                    <div class="pt-1">
+                        <input type="number" id="right-amount" inputmode="decimal" step="any" min="0" placeholder="0.00" aria-label="右側金額"
+                               class="w-full bg-transparent text-3xl sm:text-4xl font-bold tracking-tight text-white focus:outline-none placeholder-slate-600">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 參考匯率與快速金額條 (與 weather.html 底部資訊格一致) -->
+            <div class="mt-5 pt-5 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-white/5 rounded-xl p-3 flex flex-col justify-center">
+                    <p class="text-[11px] text-slate-400">正向參考匯率</p>
+                    <p id="rate-display" class="text-sm font-semibold text-white mt-0.5">1 TWD = -- JPY</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3 flex flex-col justify-center">
+                    <p class="text-[11px] text-slate-400">反向參考匯率</p>
+                    <p id="inverse-rate-display" class="text-sm font-semibold text-sky-400 mt-0.5">1 JPY = -- TWD</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3 flex flex-col justify-center">
+                    <p class="text-[11px] text-slate-400 mb-1.5">快速輸入金額</p>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <button type="button" class="quick-amt text-xs px-2 py-0.5 rounded-md bg-white/5 hover:bg-wdx-mint/20 text-slate-300 hover:text-wdx-mint border border-white/10 transition-colors cursor-pointer" data-amt="100">100</button>
+                        <button type="button" class="quick-amt text-xs px-2 py-0.5 rounded-md bg-white/5 hover:bg-wdx-mint/20 text-slate-300 hover:text-wdx-mint border border-white/10 transition-colors cursor-pointer" data-amt="1000">1,000</button>
+                        <button type="button" class="quick-amt text-xs px-2 py-0.5 rounded-md bg-white/5 hover:bg-wdx-mint/20 text-slate-300 hover:text-wdx-mint border border-white/10 transition-colors cursor-pointer" data-amt="10000">10,000</button>
+                        <button type="button" class="quick-amt text-xs px-2 py-0.5 rounded-md bg-white/5 hover:bg-wdx-mint/20 text-slate-300 hover:text-wdx-mint border border-white/10 transition-colors cursor-pointer" data-amt="50000">50,000</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 熱門幣別即時看板 (點擊可直接切換目標貨幣，呼應 weather.html 的 4 小卡與多日列表風格) -->
+        <section class="glass-card rounded-2xl p-5 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-white">熱門貨幣即時換算看板</h2>
+                    <p id="board-subtitle" class="text-xs text-slate-400 mt-0.5">以左側金額為基準的常用貨幣即時試算（點擊卡片可直接切換為目標貨幣）</p>
+                </div>
+                <span class="text-xs text-slate-400">點擊卡片快速套用</span>
+            </div>
+
+            <div id="popular-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <!-- Skeleton placeholders -->
+                <div class="animate-pulse h-20 bg-white/5 rounded-xl"></div>
+                <div class="animate-pulse h-20 bg-white/5 rounded-xl"></div>
+                <div class="animate-pulse h-20 bg-white/5 rounded-xl"></div>
+                <div class="animate-pulse h-20 bg-white/5 rounded-xl"></div>
+                <div class="animate-pulse h-20 bg-white/5 rounded-xl"></div>
+                <div class="animate-pulse h-20 bg-white/5 rounded-xl"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer (與 weather.html 完全一致的極簡頁尾風格) -->
+    <footer class="max-w-5xl mx-auto px-4 sm:px-6 mt-10 text-center text-xs text-slate-500">
+        <p>匯率資料來源：<a href="https://www.exchangerate-api.com/" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-wdx-mint underline">ExchangeRate-API</a> · 數據隨國際市場即時變動，實際交易請以各金融機構牌告為準</p>
+    </footer>
+
+    <script>
+        // 全球主要與常見貨幣中文對照表（涵蓋亞洲、美洲、歐洲、大洋洲、中東與非洲市場）
+        const CURRENCY_NAMES = {
+            "TWD": "新台幣 (台灣)",
+            "JPY": "日圓 (日本)",
+            "USD": "美元 (美國)",
+            "EUR": "歐元 (歐元區)",
+            "KRW": "韓元 (韓國)",
+            "CNY": "人民幣 (中國)",
+            "HKD": "港幣 (香港)",
+            "MOP": "澳門幣 (澳門)",
+            "GBP": "英鎊 (英國)",
+            "AUD": "澳幣 (澳洲)",
+            "CAD": "加幣 (加拿大)",
+            "SGD": "新加坡幣 (新加坡)",
+            "CHF": "瑞士法郎 (瑞士)",
+            "THB": "泰銖 (泰國)",
+            "VND": "越南盾 (越南)",
+            "MYR": "馬來西亞令吉 (馬來西亞)",
+            "PHP": "菲律賓披索 (菲律賓)",
+            "IDR": "印尼盾 (印尼)",
+            "INR": "印度盧比 (印度)",
+            "NZD": "紐西蘭元 (紐西蘭)",
+            "SEK": "瑞典克朗 (瑞典)",
+            "NOK": "挪威克朗 (挪威)",
+            "DKK": "丹麥克朗 (丹麥)",
+            "PLN": "波蘭茲羅提 (波蘭)",
+            "CZK": "捷克克朗 (捷克)",
+            "HUF": "匈牙利福林 (匈牙利)",
+            "TRY": "土耳其里拉 (土耳其)",
+            "ZAR": "南非蘭特 (南非)",
+            "BRL": "巴西雷亞爾 (巴西)",
+            "MXN": "墨西哥披索 (墨西哥)",
+            "ARS": "阿根廷披索 (阿根廷)",
+            "CLP": "智利披索 (智利)",
+            "COP": "哥倫比亞披索 (哥倫比亞)",
+            "PEN": "秘魯索爾 (秘魯)",
+            "AED": "阿聯酋迪拉姆 (阿聯酋)",
+            "SAR": "沙烏地里亞爾 (沙烏地阿拉伯)",
+            "QAR": "卡達里亞爾 (卡達)",
+            "KWD": "科威特第納爾 (科威特)",
+            "BHD": "巴林第納爾 (巴林)",
+            "OMR": "阿曼里亞爾 (阿曼)",
+            "ILS": "以色列新謝克爾 (以色列)",
+            "EGP": "埃及鎊 (埃及)",
+            "RUB": "俄羅斯盧布 (俄羅斯)",
+            "UAH": "烏克蘭格里夫納 (烏克蘭)",
+            "KZT": "哈薩克堅戈 (哈薩克)",
+            "PKR": "巴基斯坦盧比 (巴基斯坦)",
+            "BDT": "孟加拉塔卡 (孟加拉)",
+            "LKR": "斯里蘭卡盧比 (斯里蘭卡)",
+            "NPR": "尼泊爾盧比 (尼泊爾)",
+            "MMK": "緬甸元 (緬甸)",
+            "KHR": "柬埔寨瑞爾 (柬埔寨)",
+            "LAK": "寮國基普 (寮國)",
+            "BND": "汶萊元 (汶萊)",
+            "MNT": "蒙古圖格里克 (蒙古)",
+            "ISK": "冰島克朗 (冰島)",
+            "RON": "羅馬尼亞列伊 (羅馬尼亞)",
+            "BGN": "保加利亞列弗 (保加利亞)",
+            "RSD": "塞爾維亞第納爾 (塞爾維亞)",
+            "GEL": "喬治亞拉里 (喬治亞)",
+            "AMD": "亞美尼亞德拉姆 (亞美尼亞)",
+            "AZN": "亞塞拜然馬納特 (亞塞拜然)",
+            "UZS": "烏茲別克索姆 (烏茲別克)",
+            "NGN": "奈及利亞奈拉 (奈及利亞)",
+            "KES": "肯亞先令 (肯亞)",
+            "GHS": "迦納塞地 (迦納)",
+            "MAD": "摩洛哥迪拉姆 (摩洛哥)",
+            "TND": "突尼西亞第納爾 (突尼西亞)",
+            "DZD": "阿爾及利亞第納爾 (阿爾及利亞)",
+            "ETB": "衣索比亞比爾 (衣索比亞)",
+            "TZS": "坦尚尼亞先令 (坦尚尼亞)",
+            "UGX": "烏干達先令 (烏干達)",
+            "FJD": "斐濟元 (斐濟)",
+            "PGK": "巴布亞紐幾內亞基那",
+            "CRC": "哥斯大黎加科朗",
+            "DOP": "多明尼加披索",
+            "GTQ": "瓜地馬拉格查爾",
+            "HNL": "宏都拉斯倫皮拉",
+            "NIO": "尼加拉瓜科多巴",
+            "PAB": "巴拿馬巴波亞",
+            "PYG": "巴拉圭瓜拉尼",
+            "UYU": "烏拉圭披索",
+            "BOB": "玻利維亞諾",
+            "JMD": "牙買加元",
+            "TTD": "千里達及托巴哥元",
+            "BSD": "巴哈馬元",
+            "BBD": "巴貝多元",
+            "XCD": "東加勒比元",
+            "XOF": "西非法郎",
+            "XAF": "中非法郎",
+            "XPF": "太平洋法郎",
+            "MUR": "模里西斯盧比",
+            "SCR": "塞席爾盧比",
+            "MVR": "馬爾地夫拉菲亞",
+            "IQD": "伊拉克第納爾",
+            "JOD": "約旦第納爾",
+            "LBP": "黎巴嫩鎊",
+            "SYP": "敘利亞鎊",
+            "YER": "葉門里亞爾",
+            "AFN": "阿富汗尼",
+            "ALL": "阿爾巴尼亞列克",
+            "BAM": "波士尼亞可兌換馬克",
+            "MKD": "北馬其頓第納爾",
+            "MDL": "摩爾多瓦列伊",
+            "BYN": "白俄羅斯盧布",
+            "KGS": "吉爾吉斯索姆",
+            "TJS": "塔吉克索莫尼",
+            "TMT": "土庫曼馬納特",
+            "AOA": "安哥拉寬扎",
+            "BWP": "波札那普拉",
+            "MZN": "莫三比克梅蒂卡爾",
+            "NAD": "納米比亞元",
+            "RWF": "盧安達法郎",
+            "ZMW": "尚比亞克瓦查"
+        };
+
+        // 優先置頂顯示的常用貨幣代碼
+        const PRIORITY_CURRENCIES = [
+            "TWD", "JPY", "USD", "EUR", "KRW", "CNY", "HKD", "GBP", "AUD", "CAD", "SGD", "THB", "VND", "MYR", "PHP", "IDR", "CHF", "NZD"
+        ];
+
+        // 熱門看板展示幣別
+        const POPULAR_CARDS = [
+            { code: "JPY", flag: "🇯🇵", name: "日圓" },
+            { code: "USD", flag: "🇺🇸", name: "美元" },
+            { code: "KRW", flag: "🇰🇷", name: "韓元" },
+            { code: "EUR", flag: "🇪🇺", name: "歐元" },
+            { code: "CNY", flag: "🇨🇳", name: "人民幣" },
+            { code: "HKD", flag: "🇭🇰", name: "港幣" }
+        ];
+
+        let rates = {};
+        let lastEditedSide = 'left';
+
+        const leftSelect = document.getElementById('left-currency');
+        const rightSelect = document.getElementById('right-currency');
+        const leftInput = document.getElementById('left-amount');
+        const rightInput = document.getElementById('right-amount');
+        const swapBtn = document.getElementById('swap-btn');
+        const swapIcon = document.getElementById('swap-icon');
+        const rateDisplay = document.getElementById('rate-display');
+        const inverseRateDisplay = document.getElementById('inverse-rate-display');
+        const statusDot = document.getElementById('status-dot');
+        const updateTimeEl = document.getElementById('update-time');
+        const countBadgeEl = document.getElementById('currency-count-badge');
+        const clearLeftBtn = document.getElementById('clear-left');
+        const copyRightBtn = document.getElementById('copy-right');
+        const copyTextEl = document.getElementById('copy-text');
+        const popularGrid = document.getElementById('popular-grid');
+        const boardSubtitle = document.getElementById('board-subtitle');
+
+        function showStatus(msg) {
+            const banner = document.getElementById('status-banner');
+            document.getElementById('status-message').textContent = msg;
+            banner.classList.remove('hidden');
+        }
+
+        function formatAmount(value, currencyCode) {
+            if (isNaN(value) || value === null) return '';
+            if (value === 0) return '0';
+
+            const zeroDecimalPreferred = ['JPY', 'KRW', 'VND', 'IDR', 'CLP', 'PYG', 'UGX', 'RWF'];
+            if (zeroDecimalPreferred.includes(currencyCode) && Math.abs(value) >= 1) {
+                return Number(value.toFixed(2)).toString();
+            }
+
+            if (Math.abs(value) < 0.01) {
+                return Number(value.toPrecision(4)).toString();
+            }
+            return Number(value.toFixed(4)).toString();
+        }
+
+        function formatDisplayNumber(value, currencyCode) {
+            const raw = formatAmount(value, currencyCode);
+            if (!raw) return '--';
+            const parts = raw.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return parts.join('.');
+        }
+
+        function formatRate(rate) {
+            if (!rate || isNaN(rate)) return '--';
+            if (rate >= 100) return rate.toFixed(2);
+            if (rate >= 1) return rate.toFixed(4);
+            return rate.toFixed(6);
+        }
+
+        function getCurrencyLabel(code) {
+            const name = CURRENCY_NAMES[code];
+            return name ? `${code} - ${name}` : `${code}`;
+        }
+
+        function populateCurrencySelects(availableCodes) {
+            const currentLeft = leftSelect.value || 'TWD';
+            const currentRight = rightSelect.value || 'JPY';
+
+            const prioritySet = new Set(PRIORITY_CURRENCIES);
+            const topCodes = PRIORITY_CURRENCIES.filter(code => availableCodes.includes(code));
+            const otherCodes = availableCodes.filter(code => !prioritySet.has(code)).sort();
+
+            function buildOptions(selectEl, selectedCode) {
+                selectEl.innerHTML = '';
+
+                const topGroup = document.createElement('optgroup');
+                topGroup.label = '常用貨幣';
+                topCodes.forEach(code => {
+                    const opt = document.createElement('option');
+                    opt.value = code;
+                    opt.textContent = getCurrencyLabel(code);
+                    if (code === selectedCode) opt.selected = true;
+                    topGroup.appendChild(opt);
+                });
+                selectEl.appendChild(topGroup);
+
+                if (otherCodes.length > 0) {
+                    const otherGroup = document.createElement('optgroup');
+                    otherGroup.label = '全球其他貨幣 (A-Z)';
+                    otherCodes.forEach(code => {
+                        const opt = document.createElement('option');
+                        opt.value = code;
+                        opt.textContent = getCurrencyLabel(code);
+                        if (code === selectedCode) opt.selected = true;
+                        otherGroup.appendChild(opt);
+                    });
+                    selectEl.appendChild(otherGroup);
+                }
+            }
+
+            buildOptions(leftSelect, availableCodes.includes(currentLeft) ? currentLeft : 'TWD');
+            buildOptions(rightSelect, availableCodes.includes(currentRight) ? currentRight : 'JPY');
+        }
+
+        function renderPopularCards() {
+            const leftCode = leftSelect.value;
+            const rightCode = rightSelect.value;
+            const baseAmount = parseFloat(leftInput.value);
+            const validAmount = (!isNaN(baseAmount) && baseAmount > 0) ? baseAmount : 1000;
+
+            if (!rates[leftCode]) return;
+
+            boardSubtitle.textContent = `以 ${formatDisplayNumber(validAmount, leftCode)} ${leftCode} 為基準的常用貨幣試算`;
+
+            popularGrid.innerHTML = POPULAR_CARDS.map(item => {
+                // 若左側本身就是該熱門幣別，改顯示 TWD
+                const displayCode = (item.code === leftCode) ? (leftCode === 'TWD' ? 'USD' : 'TWD') : item.code;
+                const displayMeta = POPULAR_CARDS.find(c => c.code === displayCode) || { code: 'TWD', flag: '🇹🇼', name: '新台幣' };
+
+                if (!rates[displayCode]) return '';
+
+                const rate = rates[displayCode] / rates[leftCode];
+                const convertedVal = validAmount * rate;
+                const isSelected = (displayCode === rightCode);
+
+                return `
+                    <button type="button" onclick="selectTargetCurrency('${displayCode}')"
+                            class="glass-card-hover text-left rounded-xl p-4 border transition-all cursor-pointer flex items-center justify-between gap-3 ${isSelected ? 'bg-white/10 border-wdx-mint/40' : 'bg-white/5 border-white/10'}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="text-2xl select-none shrink-0">${displayMeta.flag}</span>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-sm font-bold text-white">${displayMeta.code}</span>
+                                    <span class="text-xs text-slate-400 truncate">${displayMeta.name}</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-0.5">1 ${leftCode} = ${formatRate(rate)} ${displayMeta.code}</p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="text-sm sm:text-base font-bold ${isSelected ? 'text-wdx-mint' : 'text-white'}">${formatDisplayNumber(convertedVal, displayMeta.code)}</p>
+                            <p class="text-[10px] ${isSelected ? 'text-wdx-mint' : 'text-slate-500'}">${isSelected ? '目前目標' : '點擊切換'}</p>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectTargetCurrency(targetCode) {
+            if (!rates[targetCode]) return;
+            if (leftSelect.value === targetCode) {
+                leftSelect.value = targetCode === 'TWD' ? 'USD' : 'TWD';
+            }
+            rightSelect.value = targetCode;
+            calculate('left');
+        }
+
+        function calculate(sourceSide = lastEditedSide) {
+            const leftCode = leftSelect.value;
+            const rightCode = rightSelect.value;
+
+            if (!rates[leftCode] || !rates[rightCode]) return;
+
+            const crossRate = rates[rightCode] / rates[leftCode];
+            const inverseRate = rates[leftCode] / rates[rightCode];
+
+            rateDisplay.textContent = `1 ${leftCode} = ${formatRate(crossRate)} ${rightCode}`;
+            inverseRateDisplay.textContent = `1 ${rightCode} = ${formatRate(inverseRate)} ${leftCode}`;
+
+            if (sourceSide === 'left') {
+                const rawLeft = parseFloat(leftInput.value);
+                if (leftInput.value === '' || isNaN(rawLeft)) {
+                    rightInput.value = '';
+                } else {
+                    const converted = rawLeft * crossRate;
+                    rightInput.value = formatAmount(converted, rightCode);
+                }
+            } else {
+                const rawRight = parseFloat(rightInput.value);
+                if (rightInput.value === '' || isNaN(rawRight)) {
+                    leftInput.value = '';
+                } else {
+                    const converted = rawRight * inverseRate;
+                    leftInput.value = formatAmount(converted, leftCode);
+                }
+            }
+
+            renderPopularCards();
+        }
+
+        async function fetchExchangeRates() {
+            statusDot.className = 'inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+            updateTimeEl.textContent = '資料更新中...';
+
+            const endpoints = [
+                'https://open.er-api.com/v6/latest/USD',
+                'https://api.exchangerate-api.com/v4/latest/USD'
+            ];
+
+            let success = false;
+
+            for (const url of endpoints) {
+                try {
+                    const response = await fetch(url, { cache: 'no-store' });
+                    if (!response.ok) continue;
+                    const data = await response.json();
+
+                    if (data && data.rates && data.rates.TWD && data.rates.JPY) {
+                        rates = data.rates;
+                        const codes = Object.keys(rates);
+                        populateCurrencySelects(codes);
+
+                        const now = new Date();
+                        const hhmm = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+                        statusDot.className = 'inline-block w-2 h-2 rounded-full bg-wdx-mint animate-pulse';
+                        updateTimeEl.textContent = `更新於 ${hhmm}`;
+                        countBadgeEl.textContent = `支援 ${codes.length} 種貨幣`;
+                        document.getElementById('status-banner').classList.add('hidden');
+
+                        try {
+                            localStorage.setItem('cached_fx_rates', JSON.stringify({
+                                rates: rates,
+                                timestamp: hhmm
+                            }));
+                        } catch (e) {}
+
+                        calculate(lastEditedSide);
+                        success = true;
+                        break;
+                    }
+                } catch (err) {
+                    console.warn('API 連線失敗，嘗試備援來源:', url, err);
+                }
+            }
+
+            if (!success) {
+                try {
+                    const cached = JSON.parse(localStorage.getItem('cached_fx_rates'));
+                    if (cached && cached.rates) {
+                        rates = cached.rates;
+                        populateCurrencySelects(Object.keys(rates));
+                        statusDot.className = 'inline-block w-2 h-2 rounded-full bg-amber-400';
+                        updateTimeEl.textContent = `快取於 ${cached.timestamp}`;
+                        showStatus('目前無法連線至最新匯率伺服器，已自動載入上次快取的匯率數據。');
+                        calculate(lastEditedSide);
+                        return;
+                    }
+                } catch (e) {}
+
+                statusDot.className = 'inline-block w-2 h-2 rounded-full bg-rose-500';
+                updateTimeEl.textContent = '連線失敗';
+                showStatus('匯率資料載入失敗，請檢查網路連線或點擊「更新匯率」重試。');
+            }
+        }
+
+        function resetDefaultPair() {
+            leftSelect.value = 'TWD';
+            rightSelect.value = 'JPY';
+            leftInput.value = '1000';
+            lastEditedSide = 'left';
+            calculate('left');
+        }
+
+        leftInput.addEventListener('input', () => {
+            lastEditedSide = 'left';
+            calculate('left');
+        });
+
+        rightInput.addEventListener('input', () => {
+            lastEditedSide = 'right';
+            calculate('right');
+        });
+
+        leftSelect.addEventListener('change', () => {
+            calculate(lastEditedSide);
+        });
+
+        rightSelect.addEventListener('change', () => {
+            calculate(lastEditedSide);
+        });
+
+        let rotation = 0;
+        swapBtn.addEventListener('click', () => {
+            const tempCurrency = leftSelect.value;
+            leftSelect.value = rightSelect.value;
+            rightSelect.value = tempCurrency;
+
+            rotation += 180;
+            if (window.innerWidth >= 768) {
+                swapIcon.style.transform = `rotate(${rotation}deg)`;
+            } else {
+                swapIcon.style.transform = `rotate(${rotation + 90}deg)`;
+            }
+
+            calculate('left');
+        });
+
+        clearLeftBtn.addEventListener('click', () => {
+            leftInput.value = '';
+            rightInput.value = '';
+            leftInput.focus();
+            renderPopularCards();
+        });
+
+        copyRightBtn.addEventListener('click', async () => {
+            if (!rightInput.value) return;
+            try {
+                await navigator.clipboard.writeText(rightInput.value);
+                copyTextEl.textContent = '已複製！';
+                copyRightBtn.classList.add('text-wdx-mint');
+                setTimeout(() => {
+                    copyTextEl.textContent = '複製金額';
+                    copyRightBtn.classList.remove('text-wdx-mint');
+                }, 1500);
+            } catch (err) {
+                rightInput.select();
+                document.execCommand('copy');
+            }
+        });
+
+        document.querySelectorAll('.quick-amt').forEach(btn => {
+            btn.addEventListener('click', () => {
+                leftInput.value = btn.getAttribute('data-amt');
+                lastEditedSide = 'left';
+                calculate('left');
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchExchangeRates();
+        });
+    </script>
+</body>
+</html>
